@@ -1,31 +1,25 @@
 import { Link } from 'react-router-dom';
-import { XCircle, ArrowLeft } from 'lucide-react';
+import { XCircle, ArrowLeft, RotateCcw } from 'lucide-react';
 
 export default function PaymentCancel() {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center animate-in slide-in-from-bottom-4 duration-500">
-      <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
-        <XCircle size={40} className="text-red-500" />
-      </div>
+    <div className="animate-entry" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
       
-      <h1 className="text-4xl font-bold mb-3 text-white">Payment Cancelled</h1>
-      <p className="text-muted text-lg max-w-md mb-8">
-        Your upgrade process was cancelled. No charges were made to your account.
+      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(212, 64, 64, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
+        <XCircle size={36} style={{ color: 'var(--destructive)' }} />
+      </div>
+
+      <h1 className="text-title" style={{ fontSize: '32px', marginBottom: '16px' }}>Payment Cancelled</h1>
+      <p className="text-body" style={{ color: 'var(--fg-secondary)', maxWidth: '420px', margin: '0 auto 40px' }}>
+        Your upgrade process was cancelled. No charges were made to your account. You remain on the Free Plan.
       </p>
 
-      <div className="flex gap-4">
-        <Link 
-          to="/billing" 
-          className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors"
-        >
-          <ArrowLeft size={18} />
-          Return to Billing
+      <div style={{ display: 'flex', gap: '16px' }}>
+        <Link to="/billing" className="btn-minimal btn-minimal--secondary" style={{ padding: '12px 24px' }}>
+          <ArrowLeft size={16} /> Return to Billing
         </Link>
-        <Link 
-          to="/billing" 
-          className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors"
-        >
-          Try Again
+        <Link to="/billing" className="btn-minimal btn-minimal--primary" style={{ padding: '12px 24px' }}>
+          <RotateCcw size={16} /> Try Again
         </Link>
       </div>
     </div>

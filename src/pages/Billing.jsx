@@ -1,149 +1,147 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Check, Sparkles, Building2, Loader2, AlertCircle } from 'lucide-react';
+import CopyBadge from '../components/CopyBadge';
+import { Check, AlertCircle, Building2, Loader2, ArrowUpRight } from 'lucide-react';
 
 export default function Billing() {
+  const { organization } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Mocked state
-  const activePlan = "FREE";
-  const activeOrg = {
-    name: "Politechnika Wrocławska",
-    id: "org-pwr-2026"
-  };
+  const activePlan = organization?.tier || 'FREE';
 
   const handleUpgrade = async () => {
     setIsLoading(true);
     setError(null);
-
     try {
-      // Create checkout session
       const response = await axios.post('http://localhost:5002/api/billing/checkout', {
-        organizationId: activeOrg.id
+        organizationId: organization.id,
       });
-
-      // Redirect to Stripe checkout
       if (response.data && response.data.checkoutUrl) {
         window.location.href = response.data.checkoutUrl;
       } else {
-        throw new Error('Invalid response from server: Missing checkout URL');
+        throw new Error('Missing checkout URL');
       }
     } catch (err) {
-      console.error('Checkout error:', err);
       setError(err.response?.data?.message || err.message || 'Failed to initialize checkout');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Billing & Subscription</h1>
-        <p className="text-muted">Manage your organization's billing and upgrade your features.</p>
+    <div className="animate-entry">
+      <div style={{ marginBottom: '48px' }}>
+        <h1 className="text-title" style={{ fontSize: '32px', marginBottom: '12px' }}>
+          Billing & Plans
+        </h1>
+        <p className="text-body" style={{ color: 'var(--fg-secondary)', maxWidth: '600px' }}>
+          Manage your workspace subscription, payment methods, and billing history.
+        </p>
       </div>
 
-      {/* Organization Context Context */}
-      <div className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl">
-        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-          <Building2 size={20} className="text-muted" />
+      <div className="card-minimal" style={{ padding: '24px', marginBottom: '48px', display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-inset)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Building2 size={20} style={{ color: 'var(--fg-secondary)' }} />
         </div>
-        <div className="flex-1">
-          <p className="text-sm text-muted">Active Organization Context</p>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground">{activeOrg.name}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-muted font-mono">
-              {activeOrg.id}
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
+            <span className="text-title" style={{ fontSize: '18px' }}>
+              {organization?.name}
+            </span>
+            <span className="tag-pastel tag-pastel--green">
+              Plan: {activePlan}
             </span>
           </div>
-        </div>
-        <div className="px-4 py-1.5 rounded-full bg-green-500/10 text-green-500 text-sm font-medium border border-green-500/20">
-          Current Plan: {activePlan}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="text-meta">Workspace ID:</span>
+            <CopyBadge value={organization?.id} compact />
+          </div>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-500">
-          <AlertCircle size={20} className="mt-0.5 shrink-0" />
-          <p className="text-sm font-medium">{error}</p>
+        <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(212, 64, 64, 0.08)', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', color: 'var(--destructive)', fontSize: '14px', fontWeight: 500 }}>
+          <AlertCircle size={18} />
+          {error}
         </div>
       )}
 
-      {/* Pricing Cards */}
-      <div className="grid md:grid-cols-2 gap-6 mt-8">
-        
-        {/* Free Plan */}
-        <div className="p-6 rounded-2xl border border-border bg-card flex flex-col opacity-70 transition-opacity hover:opacity-100">
-          <div className="mb-4">
-            <h3 className="text-xl font-bold">Free Plan</h3>
-            <p className="text-sm text-muted mt-1">Basic support features for small teams.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+
+        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 className="text-title" style={{ fontSize: '20px', marginBottom: '8px' }}>Free</h3>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
+              Essential ticketing and support features for small teams starting out.
+            </p>
           </div>
-          <div className="mb-6 flex items-baseline gap-1">
-            <span className="text-4xl font-extrabold">$0</span>
-            <span className="text-muted">/month</span>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px' }}>
+            <span className="text-title" style={{ fontSize: '48px' }}>$0</span>
+            <span className="text-meta">/ month</span>
           </div>
-          <ul className="space-y-3 mb-8 flex-1">
+
+          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
+
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {['Up to 3 agents', 'Basic ticketing', 'Community support', 'Standard SLA'].map((feature, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm text-muted">
-                <Check size={16} className="text-primary" />
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-secondary)' }}>
+                <Check size={16} style={{ color: 'var(--success)' }} />
                 {feature}
               </li>
             ))}
           </ul>
-          <button disabled className="w-full py-2.5 rounded-lg font-medium bg-white/5 text-muted border border-white/10 cursor-not-allowed">
+
+          <button disabled className="btn-minimal btn-minimal--secondary" style={{ width: '100%', marginTop: '40px', padding: '12px' }}>
             Current Plan
           </button>
         </div>
 
-        {/* Premium Plan */}
-        <div className="p-6 rounded-2xl border border-primary/50 bg-primary/5 flex flex-col relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-50 text-primary">
-            <Sparkles size={120} className="absolute -top-10 -right-10 blur-[40px]" />
-          </div>
-          
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary/0 via-primary to-primary/0" />
+        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
 
-          <div className="mb-4 relative z-10">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-xl font-bold text-white">Premium Plan</h3>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-primary text-white">Popular</span>
+          <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(113, 107, 200, 0.05) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+          <div style={{ marginBottom: '24px', position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <h3 className="text-title" style={{ fontSize: '20px' }}>Premium</h3>
+              <span className="tag-pastel tag-pastel--blue">Recommended</span>
             </div>
-            <p className="text-sm text-primary/80">Advanced tools for scaling support operations.</p>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
+              Advanced tools, automation, and priority support for scaling operations.
+            </p>
           </div>
-          <div className="mb-6 flex items-baseline gap-1 relative z-10">
-            <span className="text-4xl font-extrabold text-white">$50</span>
-            <span className="text-primary/70">/month</span>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px', position: 'relative' }}>
+            <span className="text-title" style={{ fontSize: '48px' }}>$50</span>
+            <span className="text-meta">/ month</span>
           </div>
-          <ul className="space-y-3 mb-8 flex-1 relative z-10">
+
+          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
+
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
             {['Unlimited agents', 'Advanced routing rules', '24/7 Priority support', 'Custom SLA', 'Advanced Analytics'].map((feature, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm text-white/80">
-                <Check size={16} className="text-primary" />
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-primary)' }}>
+                <Check size={16} style={{ color: 'var(--success)' }} />
                 {feature}
               </li>
             ))}
           </ul>
-          <button 
-            onClick={handleUpgrade}
-            disabled={isLoading}
-            className={`relative z-10 w-full py-3 rounded-lg font-semibold transition-all ${
-              isLoading 
-                ? 'bg-primary/70 text-white cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-primary-hover shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)]'
-            }`}
-          >
+
+          <button onClick={handleUpgrade} disabled={isLoading} className="btn-minimal btn-minimal--primary" style={{ width: '100%', marginTop: '40px', padding: '12px', position: 'relative' }}>
             {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <Loader2 size={18} className="animate-spin" />
-                Processing...
-              </span>
+              <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
             ) : (
-              'Upgrade to Premium'
+              <>Upgrade to Premium <ArrowUpRight size={16} /></>
             )}
           </button>
         </div>
-
       </div>
+
+      <p className="text-meta" style={{ textAlign: 'center', marginTop: '48px', fontSize: '12px' }}>
+        Payment is securely processed via Stripe. Your workspace ID is sent to the billing service for checkout creation.
+      </p>
     </div>
   );
 }

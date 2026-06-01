@@ -3,38 +3,43 @@ import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function PaymentSuccess() {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-500">
-      <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6 relative">
-        <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping opacity-75" />
-        <CheckCircle2 size={40} className="text-green-500 relative z-10" />
-      </div>
+    <div className="animate-entry" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
       
-      <h1 className="text-4xl font-bold mb-3 text-white">Payment Successful!</h1>
-      <p className="text-muted text-lg max-w-md mb-8">
-        Your organization has been upgraded to the Premium Plan. Thank you for choosing SupportHub.
+      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--tag-green-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px' }}>
+        <CheckCircle2 size={36} style={{ color: 'var(--success)' }} />
+      </div>
+
+      <h1 className="text-title" style={{ fontSize: '32px', marginBottom: '16px' }}>Payment Successful</h1>
+      <p className="text-body" style={{ color: 'var(--fg-secondary)', maxWidth: '420px', margin: '0 auto 40px' }}>
+        Your workspace has been upgraded to the Premium Plan. All advanced features, automations, and priority support are now active.
       </p>
 
-      <div className="p-6 bg-card border border-border rounded-xl w-full max-w-sm mb-8">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-muted">Amount paid</span>
-          <span className="font-bold text-white">$50.00</span>
+      <div className="card-minimal" style={{ width: '100%', maxWidth: '400px', padding: '32px', marginBottom: '40px', textAlign: 'left' }}>
+        <div style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-primary)', marginBottom: '16px' }}>
+          <span className="text-meta" style={{ fontSize: '13px' }}>Transaction Receipt</span>
         </div>
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-muted">Plan</span>
-          <span className="font-medium text-primary">Premium Monthly</span>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <span className="text-body" style={{ color: 'var(--fg-secondary)' }}>Amount paid</span>
+          <span className="text-title" style={{ fontSize: '16px' }}>$50.00</span>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-muted">Status</span>
-          <span className="text-xs font-bold px-2 py-1 rounded bg-green-500/10 text-green-500 uppercase">Active</span>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <span className="text-body" style={{ color: 'var(--fg-secondary)' }}>Subscription Plan</span>
+          <span className="text-title" style={{ fontSize: '16px' }}>Premium Monthly</span>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span className="text-body" style={{ color: 'var(--fg-secondary)' }}>Status</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="status-dot" />
+            <span className="text-title" style={{ fontSize: '15px', color: 'var(--success)' }}>Active</span>
+          </div>
         </div>
       </div>
 
-      <Link 
-        to="/billing" 
-        className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-      >
-        Return to Dashboard
-        <ArrowRight size={18} />
+      <Link to="/billing" className="btn-minimal btn-minimal--primary" style={{ padding: '14px 32px', fontSize: '16px' }}>
+        Return to Workspace <ArrowRight size={16} />
       </Link>
     </div>
   );
