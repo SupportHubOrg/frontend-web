@@ -20,6 +20,32 @@ export function AuthProvider({ children }) {
   const [organization, setOrganization] = useState(null);
   const isRun = useRef(false);
 
+  const checkUserOrganization = useCallback(async (subject, token) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/users/${subject}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setHasOrganization(!!data?.organizationId);
+        if (data?.organizationId) {
+          const orgResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/${data.organizationId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (orgResponse.ok) {
+            const orgData = await orgResponse.json();
+            setOrganization(orgData);
+          }
+        }
+      } else {
+        setHasOrganization(false);
+        setOrganization(null);
+      }
+    } catch (err) {
+      console.error("Failed to load organizations", err);
+    }
+  }, []);
+
   useEffect(() => {
     if (isRun.current) return;
     isRun.current = true;
@@ -40,26 +66,7 @@ export function AuthProvider({ children }) {
             username: profile.username
           });
 
-          // Check if user has an organization by querying the specific user endpoint
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/users/${keycloak.subject}`, {
-            headers: { 'Authorization': `Bearer ${keycloak.token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setHasOrganization(!!data?.organizationId);
-            if (data?.organizationId) {
-              const orgResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/${data.organizationId}`, {
-                headers: { 'Authorization': `Bearer ${keycloak.token}` }
-              });
-              if (orgResponse.ok) {
-                const orgData = await orgResponse.json();
-                setOrganization(orgData);
-              }
-            }
-          } else {
-            // User likely not found (404) or forbidden, meaning they haven't set up an organization yet
-            setHasOrganization(false);
-          }
+          await checkUserOrganization(keycloak.subject, keycloak.token);
         } catch (err) {
           console.error("Failed to load user profile or organizations", err);
         }
@@ -113,6 +120,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    checkUserOrganization
   };
 
   // If Keycloak is still checking session, we can show a minimal loading state or just render children

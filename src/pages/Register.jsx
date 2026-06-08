@@ -5,7 +5,7 @@ import { AlertCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function Register() {
-  const { user, getToken } = useAuth();
+  const { user, getToken, checkUserOrganization } = useAuth();
   const navigate = useNavigate();
 
   const [organizationName, setOrganizationName] = useState('');
@@ -42,7 +42,8 @@ export default function Register() {
         throw new Error('Failed to create organization');
       }
 
-      // Success, redirect to the app
+      // Success, refresh auth context and redirect to the app
+      await checkUserOrganization(user?.id, getToken());
       navigate('/billing', { replace: true });
     } catch (err) {
       setError(err.message || 'Failed to create workspace. Please try again.');

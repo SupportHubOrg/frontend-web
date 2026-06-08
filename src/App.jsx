@@ -13,6 +13,7 @@ import Tickets from './pages/Tickets';
 import KnowledgeBase from './pages/KnowledgeBase';
 import OrganizationSettings from './pages/OrganizationSettings';
 import Users from './pages/Users';
+import ConfirmOrganization from './pages/ConfirmOrganization';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, hasOrganization } = useAuth();
@@ -54,6 +55,15 @@ function AppRoutes() {
           <PublicRoute>
             <Landing />
           </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/confirm-organization"
+        element={
+          <ProtectedRoute>
+            <ConfirmOrganization />
+          </ProtectedRoute>
         }
       />
       

@@ -53,6 +53,11 @@ export default function Billing() {
             <span className="tag-pastel tag-pastel--green">
               Plan: {activePlan}
             </span>
+            {organization?.creationConfirmationStatus && (
+              <span className={`tag-pastel ${organization.creationConfirmationStatus === 'PENDING' ? 'tag-pastel--blue' : 'tag-pastel--green'}`}>
+                Status: {organization.creationConfirmationStatus}
+              </span>
+            )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="text-meta">Workspace ID:</span>
