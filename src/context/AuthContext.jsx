@@ -1,75 +1,129 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import Keycloak from 'keycloak-js';
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = 'supporthub_session';
+const keycloakConfig = {
+  url: 'http://localhost:8085',
+  realm: 'supporthub',
+  clientId: 'supporthub-frontend'
+};
 
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-function loadSession() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
-}
-
-function saveSession(session) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-}
-
-function clearSession() {
-  localStorage.removeItem(STORAGE_KEY);
-}
+// Initialize single instance outside of component lifecycle
+const keycloak = new Keycloak(keycloakConfig);
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(() => loadSession());
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [hasOrganization, setHasOrganization] = useState(false);
+  const [organization, setOrganization] = useState(null);
+  const isRun = useRef(false);
 
-  const isAuthenticated = !!session;
+  useEffect(() => {
+    if (isRun.current) return;
+    isRun.current = true;
 
-  const register = useCallback(({ organizationName, fullName, email, password }) => {
-    const newSession = {
-      user: {
-        id: generateUUID(),
-        fullName,
-        email,
-        role: 'Organization Manager',
-      },
-      organization: {
-        id: generateUUID(),
-        name: organizationName,
-        tier: 'FREE',
-      },
-      createdAt: new Date().toISOString(),
-    };
+    keycloak.init({ 
+      onLoad: 'check-sso',
+      silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+      pkceMethod: 'S256'
+    }).then(async (authenticated) => {
+      
+      if (authenticated) {
+        try {
+          const profile = await keycloak.loadUserProfile();
+          setUser({
+            id: keycloak.subject,
+            fullName: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.username || 'User',
+            email: profile.email,
+            username: profile.username
+          });
 
-    saveSession(newSession);
-    setSession(newSession);
-    return newSession;
+          // Check if user has an organization by querying the specific user endpoint
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/users/${keycloak.subject}`, {
+            headers: { 'Authorization': `Bearer ${keycloak.token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setHasOrganization(!!data?.organizationId);
+            if (data?.organizationId) {
+              const orgResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/${data.organizationId}`, {
+                headers: { 'Authorization': `Bearer ${keycloak.token}` }
+              });
+              if (orgResponse.ok) {
+                const orgData = await orgResponse.json();
+                setOrganization(orgData);
+              }
+            }
+          } else {
+            // User likely not found (404) or forbidden, meaning they haven't set up an organization yet
+            setHasOrganization(false);
+          }
+        } catch (err) {
+          console.error("Failed to load user profile or organizations", err);
+        }
+      }
+
+      setIsAuthenticated(authenticated);
+      setIsInitialized(true);
+    }).catch(console.error);
+
+    // Setup token refresh
+    const updateTokenInterval = setInterval(() => {
+      if (keycloak.authenticated) {
+        keycloak.updateToken(70).then((refreshed) => {
+          if (refreshed) {
+            console.log('Token refreshed');
+          }
+        }).catch(() => {
+          console.error('Failed to refresh token');
+          keycloak.clearToken();
+        });
+      }
+    }, 10000);
+
+    return () => clearInterval(updateTokenInterval);
+  }, []);
+
+  const login = useCallback(() => {
+    keycloak.login();
+  }, []);
+
+  const register = useCallback(() => {
+    keycloak.register();
   }, []);
 
   const logout = useCallback(() => {
-    clearSession();
-    setSession(null);
+    keycloak.logout({ redirectUri: window.location.origin });
+  }, []);
+
+  const getToken = useCallback(() => {
+    return keycloak.token;
   }, []);
 
   const value = {
-    session,
-    user: session?.user || null,
-    organization: session?.organization || null,
     isAuthenticated,
+    isInitialized,
+    hasOrganization,
+    organization,
+    user,
+    token: keycloak.token,
+    getToken,
+    login,
     register,
     logout,
   };
+
+  // If Keycloak is still checking session, we can show a minimal loading state or just render children
+  // Rendering children is better for the Landing page to show up immediately
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+        <div className="text-[var(--fg-muted)]">Loading SupportHub...</div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={value}>

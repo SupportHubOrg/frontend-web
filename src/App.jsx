@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import Layout from './Layout';
+import Landing from './pages/Landing';
 import Register from './pages/Register';
 import Billing from './pages/Billing';
 import PaymentSuccess from './pages/PaymentSuccess';
@@ -14,16 +15,31 @@ import OrganizationSettings from './pages/OrganizationSettings';
 import Users from './pages/Users';
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasOrganization } = useAuth();
   if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  if (!hasOrganization) {
     return <Navigate to="/register" replace />;
   }
   return children;
 }
 
 function PublicRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasOrganization } = useAuth();
   if (isAuthenticated) {
+    if (hasOrganization) return <Navigate to="/billing" replace />;
+    return <Navigate to="/register" replace />;
+  }
+  return children;
+}
+
+function SetupWorkspaceRoute({ children }) {
+  const { isAuthenticated, hasOrganization } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  if (hasOrganization) {
     return <Navigate to="/billing" replace />;
   }
   return children;
@@ -33,31 +49,38 @@ function AppRoutes() {
   return (
     <Routes>
       <Route
-        path="/register"
+        path="/"
         element={
           <PublicRoute>
-            <Register />
+            <Landing />
           </PublicRoute>
+        }
+      />
+      
+      <Route
+        path="/register"
+        element={
+          <SetupWorkspaceRoute>
+            <Register />
+          </SetupWorkspaceRoute>
         }
       />
 
       <Route
-        path="/"
         element={
           <ProtectedRoute>
             <Layout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/billing" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="tickets" element={<Tickets />} />
-        <Route path="knowledge-base" element={<KnowledgeBase />} />
-        <Route path="billing" element={<Billing />} />
-        <Route path="organization" element={<OrganizationSettings />} />
-        <Route path="users" element={<Users />} />
-        <Route path="payment-success" element={<PaymentSuccess />} />
-        <Route path="payment-cancel" element={<PaymentCancel />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/knowledge-base" element={<KnowledgeBase />} />
+        <Route path="/billing" element={<Billing />} />
+        <Route path="/organization" element={<OrganizationSettings />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-cancel" element={<PaymentCancel />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

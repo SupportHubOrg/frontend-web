@@ -1,161 +1,123 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { motion } from 'motion/react';
 
 export default function Register() {
-  const { register } = useAuth();
+  const { user, getToken } = useAuth();
   const navigate = useNavigate();
-  const { theme } = useTheme();
 
-  const [form, setForm] = useState({
-    organizationName: '',
-    fullName: '',
-    email: '',
-    password: '',
-  });
+  const [organizationName, setOrganizationName] = useState('');
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError(null);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!form.organizationName.trim()) { setError('Organization name is required'); return; }
-    if (!form.fullName.trim()) { setError('Full name is required'); return; }
-    if (!form.email.trim() || !form.email.includes('@')) { setError('Valid email is required'); return; }
-    if (!form.password || form.password.length < 4) { setError('Password must be at least 4 characters'); return; }
+    if (!organizationName.trim()) { 
+      setError('Organization name is required'); 
+      return; 
+    }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      try {
-        register(form);
-        navigate('/billing', { replace: true });
-      } catch (err) {
-        setError('Registration failed. Please try again.');
-        setIsSubmitting(false);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+          name: organizationName,
+          tier: 'FREE',
+          managerEmail: user?.email || '',
+          managerKeycloakId: user?.id,
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create organization');
       }
-    }, 400);
+
+      // Success, redirect to the app
+      navigate('/billing', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Failed to create workspace. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
-  const isDark = theme === 'dark';
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-      <div className="animate-entry" style={{ width: '100%', maxWidth: '440px' }}>
+    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)]">
+      <header className="w-full px-6 py-8">
+        <Link to="/" className="text-title text-xl tracking-tight text-[var(--fg-primary)] hover:opacity-70 transition-opacity">
+          SupportHub
+        </Link>
+      </header>
 
-        <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-          <img
-            src="https://support-hub.io/assets/img/logo_text.svg"
-            alt="SupportHub"
-            style={{
-              height: '28px',
-              margin: '0 auto 24px',
-              display: 'block'
-            }}
-          />
-          <h1 className="text-title" style={{ fontSize: '28px', marginBottom: '12px' }}>
-            Create Workspace
-          </h1>
-          <p className="text-body" style={{ color: 'var(--fg-secondary)' }}>
-            Register your organization to start using the SupportHub platform.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="card-minimal" style={{ padding: '32px' }}>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label htmlFor="organizationName" className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-primary)' }}>
-                Organization Name
-              </label>
-              <input
-                id="organizationName"
-                name="organizationName"
-                type="text"
-                className="input-minimal"
-                placeholder="Acme Corp"
-                value={form.organizationName}
-                onChange={handleChange}
-                autoFocus
-              />
-            </div>
-
-            <div style={{ height: '1px', background: 'var(--border-primary)', margin: '32px -32px' }} />
-
-            <div style={{ marginBottom: '24px' }}>
-              <label htmlFor="fullName" className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-primary)' }}>
-                Your Full Name
-              </label>
-              <input
-                id="fullName"
-                name="fullName"
-                type="text"
-                className="input-minimal"
-                placeholder="Jane Doe"
-                value={form.fullName}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label htmlFor="email" className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-primary)' }}>
-                Work Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                className="input-minimal"
-                placeholder="jane@company.com"
-                value={form.email}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-primary)' }}>
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                className="input-minimal"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={handleChange}
-              />
-            </div>
-
-            {error && (
-              <div style={{ marginTop: '24px', padding: '12px 16px', borderRadius: '6px', background: 'rgba(212, 64, 64, 0.08)', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--destructive)', fontSize: '14px', fontWeight: 500 }}>
-                <AlertCircle size={16} />
-                {error}
-              </div>
-            )}
+      <main className="flex-1 flex items-center justify-center p-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[440px]"
+        >
+          <div className="mb-10">
+            <h1 className="text-title text-3xl mb-3 text-[var(--fg-primary)] tracking-tight">
+              Create your workspace
+            </h1>
+            <p className="text-body text-[var(--fg-muted)]">
+              Welcome, {user?.fullName || 'User'}! Just one more step to set up your organization and start using SupportHub.
+            </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-minimal btn-minimal--primary"
-            style={{ width: '100%', marginTop: '24px', padding: '14px 24px', fontSize: '16px' }}
-          >
-            {isSubmitting ? 'Creating Workspace...' : (
-              <>
-                Continue <ArrowRight size={16} />
-              </>
-            )}
-          </button>
-        </form>
-      </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div className="card-minimal p-8 flex flex-col gap-6">
+              
+              <div>
+                <label htmlFor="organizationName" className="text-meta block mb-2 text-[var(--fg-primary)]">
+                  Organization Name
+                </label>
+                <input
+                  id="organizationName"
+                  name="organizationName"
+                  type="text"
+                  className="input-minimal"
+                  placeholder="Acme Corp"
+                  value={organizationName}
+                  onChange={(e) => {
+                    setOrganizationName(e.target.value);
+                    setError(null);
+                  }}
+                  autoFocus
+                />
+              </div>
+
+              {error && (
+                <div className="mt-2 p-3 rounded-md bg-red-500/10 flex items-center gap-2 text-[var(--destructive)] text-sm font-medium">
+                  <AlertCircle size={16} />
+                  {error}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-minimal btn-minimal--primary w-full py-3 text-base flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? 'Creating Workspace...' : (
+                <>
+                  Complete Setup <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+        </motion.div>
+      </main>
     </div>
   );
 }
