@@ -21,7 +21,7 @@ import {
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, disabled: true },
-  { to: '/tickets', label: 'Tickets', icon: Ticket, disabled: true },
+  { to: '/tickets', label: 'Tickets', icon: Ticket, disabled: false },
   { to: '/knowledge-base', label: 'Knowledge Base', icon: BookOpen, disabled: true },
   { to: '/billing', label: 'Billing', icon: CreditCard, disabled: false },
   { to: '/organization', label: 'Organization', icon: Settings, disabled: true },
