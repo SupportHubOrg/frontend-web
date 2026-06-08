@@ -99,8 +99,37 @@ export default function Billing() {
             ))}
           </ul>
 
+          <button disabled={activePlan === 'FREE'} className="btn-minimal btn-minimal--secondary" style={{ width: '100%', marginTop: '40px', padding: '12px' }}>
+            {activePlan === 'FREE' ? 'Current Plan' : 'Downgrade to Free'}
+          </button>
+        </div>
+
+        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 className="text-title" style={{ fontSize: '20px', marginBottom: '8px' }}>Standard</h3>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
+              For growing teams that need more power.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px' }}>
+            <span className="text-title" style={{ fontSize: '48px' }}>$15</span>
+            <span className="text-meta">/ month</span>
+          </div>
+
+          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
+
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {['Up to 10 agents', 'Advanced routing', 'Email support', 'Standard SLA'].map((feature, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-secondary)' }}>
+                <Check size={16} style={{ color: 'var(--success)' }} />
+                {feature}
+              </li>
+            ))}
+          </ul>
+
           <button disabled className="btn-minimal btn-minimal--secondary" style={{ width: '100%', marginTop: '40px', padding: '12px' }}>
-            Current Plan
+            Coming Soon
           </button>
         </div>
 
@@ -110,7 +139,7 @@ export default function Billing() {
 
           <div style={{ marginBottom: '24px', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <h3 className="text-title" style={{ fontSize: '20px' }}>Premium</h3>
+              <h3 className="text-title" style={{ fontSize: '20px' }}>Pro</h3>
               <span className="tag-pastel tag-pastel--blue">Recommended</span>
             </div>
             <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
@@ -134,12 +163,42 @@ export default function Billing() {
             ))}
           </ul>
 
-          <button onClick={handleUpgrade} disabled={isLoading} className="btn-minimal btn-minimal--primary" style={{ width: '100%', marginTop: '40px', padding: '12px', position: 'relative' }}>
+          <button onClick={handleUpgrade} disabled={isLoading || activePlan === 'PRO'} className={`btn-minimal ${activePlan === 'PRO' ? 'btn-minimal--secondary' : 'btn-minimal--primary'}`} style={{ width: '100%', marginTop: '40px', padding: '12px', position: 'relative' }}>
             {isLoading ? (
               <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
+            ) : activePlan === 'PRO' ? (
+              'Current Plan'
             ) : (
-              <>Upgrade to Premium <ArrowUpRight size={16} /></>
+              <>Upgrade to Pro <ArrowUpRight size={16} /></>
             )}
+          </button>
+        </div>
+
+        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 className="text-title" style={{ fontSize: '20px', marginBottom: '8px' }}>Enterprise</h3>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
+              Custom solutions for large organizations.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px' }}>
+            <span className="text-title" style={{ fontSize: '48px' }}>Custom</span>
+          </div>
+
+          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
+
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {['Dedicated success manager', 'Custom integrations', 'White-labeling', 'On-premise option'].map((feature, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-secondary)' }}>
+                <Check size={16} style={{ color: 'var(--success)' }} />
+                {feature}
+              </li>
+            ))}
+          </ul>
+
+          <button disabled className="btn-minimal btn-minimal--secondary" style={{ width: '100%', marginTop: '40px', padding: '12px' }}>
+            Contact Sales
           </button>
         </div>
       </div>

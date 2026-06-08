@@ -1,7 +1,17 @@
 import { Link } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useEffect } from 'react';
 
 export default function PaymentSuccess() {
+  const { user, getToken, checkUserOrganization } = useAuth();
+
+  useEffect(() => {
+    if (user?.id) {
+      checkUserOrganization(user.id, getToken());
+    }
+  }, [user, getToken, checkUserOrganization]);
+
   return (
     <div className="animate-entry" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
       
