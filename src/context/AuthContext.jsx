@@ -74,7 +74,10 @@ export function AuthProvider({ children }) {
 
       setIsAuthenticated(authenticated);
       setIsInitialized(true);
-    }).catch(console.error);
+    }).catch((err) => {
+      console.error("Keycloak initialization failed", err);
+      setIsInitialized(true);
+    });
 
     // Setup token refresh
     const updateTokenInterval = setInterval(() => {
