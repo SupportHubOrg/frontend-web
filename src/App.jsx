@@ -14,6 +14,7 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import OrganizationSettings from './pages/OrganizationSettings';
 import Users from './pages/Users';
 import ConfirmOrganization from './pages/ConfirmOrganization';
+import ConfirmInvitation from './pages/ConfirmInvitation';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, hasOrganization } = useAuth();
@@ -41,7 +42,17 @@ function SetupWorkspaceRoute({ children }) {
     return <Navigate to="/" replace />;
   }
   if (hasOrganization) {
-    return <Navigate to="/billing" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+}
+
+function ManagerRoute({ children }) {
+  const { user } = useAuth();
+  const isManager = user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR' || user?.role === 'SYSTEM';
+  
+  if (!isManager) {
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 }
@@ -57,6 +68,8 @@ function AppRoutes() {
           </PublicRoute>
         }
       />
+
+      <Route path="/invite" element={<ConfirmInvitation />} />
 
       <Route
         path="/confirm-organization"
@@ -86,11 +99,11 @@ function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/knowledge-base" element={<KnowledgeBase />} />
-        <Route path="/billing" element={<Billing />} />
-        <Route path="/organization" element={<OrganizationSettings />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancel" element={<PaymentCancel />} />
+        <Route path="/billing" element={<ManagerRoute><Billing /></ManagerRoute>} />
+        <Route path="/organization" element={<ManagerRoute><OrganizationSettings /></ManagerRoute>} />
+        <Route path="/users" element={<ManagerRoute><Users /></ManagerRoute>} />
+        <Route path="/payment-success" element={<ManagerRoute><PaymentSuccess /></ManagerRoute>} />
+        <Route path="/payment-cancel" element={<ManagerRoute><PaymentCancel /></ManagerRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

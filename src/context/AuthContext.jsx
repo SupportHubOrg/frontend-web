@@ -28,6 +28,7 @@ export function AuthProvider({ children }) {
       if (response.ok) {
         const data = await response.json();
         setHasOrganization(!!data?.organizationId);
+        setUser(prev => prev ? { ...prev, role: data.role } : null);
         if (data?.organizationId) {
           const orgResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/${data.organizationId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -100,8 +101,8 @@ export function AuthProvider({ children }) {
     keycloak.login();
   }, []);
 
-  const register = useCallback(() => {
-    keycloak.register();
+  const register = useCallback((options) => {
+    keycloak.register(options);
   }, []);
 
   const logout = useCallback(() => {

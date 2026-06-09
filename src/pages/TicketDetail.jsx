@@ -11,6 +11,7 @@ export default function TicketDetail({ ticketId, onBack }) {
   const [error, setError] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const fetchTicketDetails = async () => {
     try {
@@ -67,6 +68,22 @@ export default function TicketDetail({ ticketId, onBack }) {
     }
   };
 
+  const handleUpdateTicket = async (newStatus, newOperatorId) => {
+    setIsUpdating(true);
+    try {
+      await axios.put(`http://localhost:5003/api/tickets/${ticketId}`, 
+        { status: newStatus, operatorId: newOperatorId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Refresh ticket details
+      await fetchTicketDetails();
+    } catch (err) {
+      setError(err.response?.data?.title || err.response?.data?.message || err.message || 'Failed to update ticket');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div style={{ padding: '48px', display: 'flex', justifyContent: 'center', color: 'var(--fg-secondary)' }}>
@@ -106,8 +123,8 @@ export default function TicketDetail({ ticketId, onBack }) {
               <span>Created: {new Date(ticket?.createdAt).toLocaleString()}</span>
             </div>
           </div>
-          <span className={`tag-pastel ${ticket?.status === 'Resolved' ? 'tag-pastel--green' : ticket?.status === 'Open' ? 'tag-pastel--blue' : 'tag-pastel--orange'}`}>
-            {ticket?.status || 'Pending'}
+          <span className={`tag-pastel ${['CLOSED', 'IN_KNOWLEDGE_BASE', 'NOT_IN_KNOWLEDGE_BASE'].includes(ticket?.status) ? 'tag-pastel--green' : ['NEW', 'UNASSIGNED'].includes(ticket?.status) ? 'tag-pastel--blue' : 'tag-pastel--orange'}`}>
+            {ticket?.status?.replace(/_/g, ' ') || 'NEW'}
           </span>
         </div>
       </div>
@@ -124,6 +141,54 @@ export default function TicketDetail({ ticketId, onBack }) {
         
         {/* Left Side: Ticket Description & Details */}
         <div style={{ width: '300px', display: 'flex', flexDirection: 'column', gap: '24px', flexShrink: 0 }}>
+          
+          {/* Ticket Actions Block */}
+          {(user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR') && (
+            <div className="card-minimal" style={{ padding: '24px' }}>
+              <h3 className="text-meta" style={{ marginBottom: '16px', color: 'var(--fg-secondary)' }}>Ticket Actions</h3>
+              
+              {/* Unassigned or New Ticket Case -> Assign to Me */}
+              {['NEW', 'UNASSIGNED'].includes(ticket?.status) && (user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR') && (
+                <button 
+                  onClick={() => handleUpdateTicket(user.role === 'LEVEL_1_OPERATOR' ? 'IN_PROGRESS_LEVEL_1' : 'IN_PROGRESS_LEVEL_2', user.id)}
+                  disabled={isUpdating}
+                  className="btn-minimal btn-minimal--primary"
+                  style={{ width: '100%', marginBottom: '16px', justifyContent: 'center' }}
+                >
+                  {isUpdating ? <Loader2 size={16} className="spin" /> : 'Assign to Me'}
+                </button>
+              )}
+
+              {/* Status Update Dropdown */}
+              {(user?.role === 'ORGANIZATION_MANAGER' || ticket?.assignedOperatorId === user?.id) && (
+                <div>
+                  <label className="text-meta" style={{ display: 'block', marginBottom: '8px' }}>Update Status</label>
+                  <select 
+                    className="input-minimal" 
+                    value={ticket?.status || 'NEW'} 
+                    onChange={(e) => handleUpdateTicket(e.target.value, ticket.assignedOperatorId)}
+                    disabled={isUpdating}
+                    style={{ width: '100%', padding: '10px 12px' }}
+                  >
+                    {user?.role === 'ORGANIZATION_MANAGER' && <option value="NEW">New</option>}
+                    <option value="UNASSIGNED">Unassigned (Return to Queue)</option>
+                    
+                    {(user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_1_OPERATOR') && (
+                      <option value="IN_PROGRESS_LEVEL_1">In Progress</option>
+                    )}
+                    
+                    {(user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_2_OPERATOR') && (
+                      <option value="IN_PROGRESS_LEVEL_2">In Progress (Escalated)</option>
+                    )}
+                    
+                    <option value="AWAITING_CUSTOMER_RESPONSE">Awaiting Customer Response</option>
+                    <option value="CLOSED">Closed (Resolved)</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="card-minimal" style={{ padding: '24px' }}>
             <h3 className="text-meta" style={{ marginBottom: '12px', color: 'var(--fg-secondary)' }}>Description</h3>
             <p className="text-body" style={{ fontSize: '14px', whiteSpace: 'pre-wrap', color: 'var(--fg-primary)' }}>

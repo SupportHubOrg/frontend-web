@@ -25,7 +25,7 @@ const NAV_ITEMS = [
   { to: '/knowledge-base', label: 'Knowledge Base', icon: BookOpen, disabled: true },
   { to: '/billing', label: 'Billing', icon: CreditCard, disabled: false },
   { to: '/organization', label: 'Organization', icon: Settings, disabled: true },
-  { to: '/users', label: 'Users', icon: Users, disabled: true },
+  { to: '/users', label: 'Users', icon: Users, disabled: false },
 ];
 
 export default function Layout() {
@@ -80,6 +80,13 @@ export default function Layout() {
           </div>
 
           {NAV_ITEMS.map((item) => {
+            // Role-based visibility logic
+            const isManager = user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR' || user?.role === 'SYSTEM';
+            const adminRoutes = ['/users', '/billing', '/organization'];
+            if (!isManager && adminRoutes.includes(item.to)) {
+              return null; // Hide admin routes for normal employees/operators
+            }
+
             const isActive = location.pathname === item.to;
             const Icon = item.icon;
 
