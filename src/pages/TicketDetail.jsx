@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Loader2, ArrowLeft, Send, AlertCircle, User } from 'lucide-react';
+import { Loader2, ArrowLeft, Send, AlertCircle, User, Bot, Sparkles, CheckCircle2, HelpCircle } from 'lucide-react';
 
 export default function TicketDetail({ ticketId, onBack }) {
   const { token, user } = useAuth();
@@ -12,6 +12,7 @@ export default function TicketDetail({ ticketId, onBack }) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isProposing, setIsProposing] = useState(false);
 
   const fetchTicketDetails = async () => {
     try {
@@ -81,6 +82,29 @@ export default function TicketDetail({ ticketId, onBack }) {
       setError(err.response?.data?.title || err.response?.data?.message || err.message || 'Failed to update ticket');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleProposeArticle = async () => {
+    if (!ticket) return;
+    setIsProposing(true);
+    setError(null);
+
+    try {
+      await axios.post(`http://localhost:5003/api/tickets/${ticketId}/propose-article`, 
+        {
+          proposedSubject: ticket.subject,
+          tags: ticket.tags?.map(t => t.id) || []
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert('Successfully proposed to Knowledge Base!');
+      await fetchTicketDetails();
+    } catch (err) {
+      setError(err.response?.data?.title || err.response?.data?.message || err.message || 'Failed to propose to Knowledge Base.');
+    } finally {
+      setIsProposing(false);
     }
   };
 
@@ -186,6 +210,20 @@ export default function TicketDetail({ ticketId, onBack }) {
                   </select>
                 </div>
               )}
+
+              {/* Propose to Knowledge Base Button */}
+              {ticket?.status === 'CLOSED' && (user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR') && (
+                <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-primary)', paddingTop: '16px' }}>
+                  <button 
+                    onClick={handleProposeArticle}
+                    disabled={isProposing}
+                    className="btn-minimal btn-minimal--ghost"
+                    style={{ width: '100%', justifyContent: 'center', color: 'var(--fg-secondary)' }}
+                  >
+                    {isProposing ? <Loader2 size={16} className="spin" /> : 'Suggest to Knowledge Base'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -209,24 +247,27 @@ export default function TicketDetail({ ticketId, onBack }) {
             ) : (
               messages.map(msg => {
                 const isMine = msg.senderId === user?.id; // user might not be correctly synced, fallback to generic view
+                const isAI = msg.senderType === 'AI';
+                
                 return (
                   <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span className="text-meta" style={{ fontSize: '11px', color: 'var(--fg-muted)' }}>
-                        {msg.senderType || 'User'} • {new Date(msg.sentAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {isAI && <Bot size={14} color="var(--tag-blue-fg)" />}
+                      <span className="text-meta" style={{ fontSize: '11px', color: isAI ? 'var(--tag-blue-fg)' : 'var(--fg-muted)', fontWeight: isAI ? 600 : 400 }}>
+                        {isAI ? 'AI Assistant' : (msg.senderType || 'User')} • {new Date(msg.sentAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </span>
                     </div>
                     <div style={{ 
                       padding: '12px 16px', 
                       borderRadius: '12px', 
-                      background: isMine ? 'var(--fg-primary)' : 'var(--bg-inset)',
-                      color: isMine ? 'var(--bg-primary)' : 'var(--fg-primary)',
+                      background: isAI ? 'var(--tag-blue-bg)' : (isMine ? 'var(--fg-primary)' : 'var(--bg-inset)'),
+                      color: isMine && !isAI ? 'var(--bg-primary)' : (isAI ? 'var(--tag-blue-fg)' : 'var(--fg-primary)'),
                       maxWidth: '85%',
-                      border: isMine ? 'none' : '1px solid var(--border-primary)',
+                      border: isAI ? '1px solid rgba(31, 108, 159, 0.2)' : (isMine ? 'none' : '1px solid var(--border-primary)'),
                       borderBottomRightRadius: isMine ? '4px' : '12px',
                       borderBottomLeftRadius: !isMine ? '4px' : '12px',
                     }}>
-                      <p className="text-body" style={{ fontSize: '14px', margin: 0, whiteSpace: 'pre-wrap' }}>
+                      <p className="text-body" style={{ fontSize: '14px', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
                         {msg.message}
                       </p>
                     </div>
