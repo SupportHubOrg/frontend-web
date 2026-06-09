@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { Loader2, Search, FileText, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Spinner, MagnifyingGlass, CheckCircle, XCircle, WarningCircle, Books, Article, CaretRight } from '@phosphor-icons/react';
 
 export default function KnowledgeBase() {
   const { user, token } = useAuth();
@@ -10,6 +10,11 @@ export default function KnowledgeBase() {
   const [drafts, setDrafts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Viewing article
+  const [viewingArticle, setViewingArticle] = useState(null);
+  
+  // Review Draft state
   const [selectedDraft, setSelectedDraft] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -125,156 +130,259 @@ export default function KnowledgeBase() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div className="animate-entry" style={{ maxWidth: '1100px' }}>
       
       {/* Header & Tabs */}
-      <div>
-        <h1 className="text-title" style={{ fontSize: '24px', marginBottom: '8px' }}>Knowledge Base</h1>
-        <p className="text-meta" style={{ fontSize: '15px', color: 'var(--fg-secondary)', marginBottom: '24px' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <h1 className="text-title" style={{ fontSize: '28px', marginBottom: '8px' }}>Knowledge Base</h1>
+        <p className="text-meta" style={{ fontSize: '14px', color: 'var(--fg-secondary)', marginBottom: '24px' }}>
           Curated documentation and solutions to help AI triage tickets efficiently.
         </p>
 
-        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-primary)', paddingBottom: '12px' }}>
-          <button 
-            className={`btn-minimal ${activeTab === 'articles' ? 'btn-minimal--primary' : 'btn-minimal--ghost'}`}
-            onClick={() => setActiveTab('articles')}
-          >
-            <FileText size={16} /> Published Articles
-          </button>
-          {isManager && (
+        {/* Tabs & Search in one row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-primary)', paddingBottom: '12px' }}>
+          <div style={{ display: 'flex', gap: '24px' }}>
             <button 
-              className={`btn-minimal ${activeTab === 'drafts' ? 'btn-minimal--primary' : 'btn-minimal--ghost'}`}
-              onClick={() => setActiveTab('drafts')}
+              className="btn-minimal"
+              style={{ 
+                background: 'transparent', border: 'none', 
+                color: activeTab === 'articles' ? 'var(--fg-primary)' : 'var(--fg-secondary)',
+                fontWeight: activeTab === 'articles' ? 600 : 500,
+                borderBottom: activeTab === 'articles' ? '2px solid var(--fg-primary)' : '2px solid transparent',
+                padding: '8px 4px 12px 4px', marginBottom: '-13px'
+              }}
+              onClick={() => setActiveTab('articles')}
             >
-              <AlertCircle size={16} /> Needs Review {drafts.length > 0 && <span style={{ background: 'var(--bg-primary)', padding: '2px 6px', borderRadius: '12px', fontSize: '11px', marginLeft: '6px' }}>{drafts.length}</span>}
+              <Books size={16} weight={activeTab === 'articles' ? 'fill' : 'regular'} style={{ marginRight: '6px' }} /> 
+              Published Articles
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      {activeTab === 'articles' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--fg-muted)' }} />
+            {isManager && (
+              <button 
+                className="btn-minimal"
+                style={{ 
+                  background: 'transparent', border: 'none', 
+                  color: activeTab === 'drafts' ? 'var(--fg-primary)' : 'var(--fg-secondary)',
+                  fontWeight: activeTab === 'drafts' ? 600 : 500,
+                  borderBottom: activeTab === 'drafts' ? '2px solid var(--fg-primary)' : '2px solid transparent',
+                  padding: '8px 4px 12px 4px', marginBottom: '-13px'
+                }}
+                onClick={() => setActiveTab('drafts')}
+              >
+                <WarningCircle size={16} weight={activeTab === 'drafts' ? 'fill' : 'regular'} style={{ marginRight: '6px' }} /> 
+                Needs Review
+                {drafts.length > 0 && (
+                  <span style={{ background: 'var(--bg-inset)', color: 'var(--fg-muted)', padding: '2px 6px', borderRadius: '99px', fontSize: '11px', marginLeft: '6px', fontWeight: 500 }}>
+                    {drafts.length}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+          
+          {activeTab === 'articles' && (
+            <form onSubmit={handleSearch} style={{ position: 'relative', width: '280px' }}>
+              <MagnifyingGlass size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--fg-muted)' }} />
               <input
                 type="text"
                 placeholder="Search articles..."
                 className="input-minimal"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ width: '100%', paddingLeft: '36px' }}
+                style={{ width: '100%', paddingLeft: '36px', height: '32px', fontSize: '13px' }}
               />
-            </div>
-            <button type="submit" className="btn-minimal btn-minimal--secondary">Search</button>
-          </form>
+            </form>
+          )}
+        </div>
+      </div>
 
+      {/* Main Content Area */}
+      {activeTab === 'articles' ? (
+        <div>
           {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 className="spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '64px', color: 'var(--fg-muted)' }}><Spinner className="animate-spin" size={24} style={{ animation: 'spin 1s linear infinite' }} /></div>
           ) : articles.length === 0 ? (
-            <div className="card-minimal" style={{ textAlign: 'center', padding: '40px', color: 'var(--fg-muted)' }}>
+            <div style={{ textAlign: 'center', padding: '64px', color: 'var(--fg-muted)', border: '1px dashed var(--border-primary)', borderRadius: '8px', fontSize: '14px' }}>
               No articles found.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {articles.map(article => (
-                <div key={article.id} className="card-minimal" style={{ padding: '20px' }}>
-                  <h3 className="text-title" style={{ fontSize: '16px', marginBottom: '8px' }}>{article.title}</h3>
-                  <p className="text-meta" style={{ color: 'var(--fg-secondary)', whiteSpace: 'pre-wrap' }}>
-                    {article.content.length > 300 ? article.content.substring(0, 300) + '...' : article.content}
-                  </p>
-                  <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                    <span className="tag-pastel tag-pastel--blue">Published: {new Date(article.publishedAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="card-minimal" style={{ overflow: 'hidden', padding: 0 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-surface-alt)', color: 'var(--fg-muted)' }}>
+                    <th style={{ padding: '12px 24px', fontWeight: 500, width: '40%' }}>Title</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 500 }}>Preview</th>
+                    <th style={{ padding: '12px 24px', fontWeight: 500, width: '140px', textAlign: 'right' }}>Published</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {articles.map(article => (
+                    <tr 
+                      key={article.id} 
+                      style={{ borderBottom: '1px solid var(--border-primary)', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onClick={() => setViewingArticle(article)}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-inset)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={{ padding: '12px 24px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Article size={16} style={{ color: 'var(--fg-muted)' }} />
+                          <span className="text-body" style={{ fontWeight: 500, fontSize: '14px' }}>{article.title}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: 'var(--fg-secondary)' }}>
+                         <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '350px' }}>
+                            {article.content?.replace(/\n/g, ' ')}
+                         </span>
+                      </td>
+                      <td style={{ padding: '12px 24px', color: 'var(--fg-muted)', textAlign: 'right' }}>
+                        {new Date(article.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div>
           {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 className="spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '64px', color: 'var(--fg-muted)' }}><Spinner size={24} style={{ animation: 'spin 1s linear infinite' }} /></div>
           ) : drafts.length === 0 ? (
-            <div className="card-minimal" style={{ textAlign: 'center', padding: '40px', color: 'var(--fg-muted)' }}>
+             <div style={{ textAlign: 'center', padding: '64px', color: 'var(--fg-muted)', border: '1px dashed var(--border-primary)', borderRadius: '8px', fontSize: '14px' }}>
               All caught up! No drafts pending review.
             </div>
           ) : (
-            drafts.map(draft => (
-              <div key={draft.id} className="card-minimal" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h3 className="text-title" style={{ fontSize: '16px', marginBottom: '4px' }}>{draft.title || 'Untitled Draft'}</h3>
-                  <p className="text-meta" style={{ color: 'var(--fg-secondary)' }}>Proposed from Ticket: {draft.sourceTicketId}</p>
-                </div>
-                <button className="btn-minimal btn-minimal--primary" onClick={() => openDraft(draft)}>
-                  Review
-                </button>
-              </div>
-            ))
+            <div className="card-minimal" style={{ overflow: 'hidden', padding: 0 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-surface-alt)', color: 'var(--fg-muted)' }}>
+                    <th style={{ padding: '12px 24px', fontWeight: 500 }}>Draft Title</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 500, width: '200px' }}>Source Ticket ID</th>
+                    <th style={{ padding: '12px 24px', fontWeight: 500, width: '100px', textAlign: 'right' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {drafts.map(draft => (
+                    <tr 
+                      key={draft.id} 
+                      style={{ borderBottom: '1px solid var(--border-primary)', transition: 'background 0.15s' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-inset)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <td style={{ padding: '12px 24px' }}>
+                        <span className="text-body" style={{ fontWeight: 500, fontSize: '14px' }}>{draft.title || 'Untitled Draft'}</span>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span className="text-code" style={{ color: 'var(--fg-secondary)' }}>{draft.sourceTicketId?.substring(0, 8) || 'N/A'}</span>
+                      </td>
+                      <td style={{ padding: '12px 24px', textAlign: 'right' }}>
+                        <button 
+                          className="btn-minimal btn-minimal--ghost" 
+                          onClick={() => openDraft(draft)}
+                          style={{ padding: '6px 12px', fontSize: '12px' }}
+                        >
+                          Review <CaretRight size={12} weight="bold" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
 
-      {/* Draft Review Modal */}
-      {selectedDraft && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 24px', overflowY: 'auto' }}>
-          <div style={{ width: '100%', maxWidth: '800px', background: 'var(--bg-surface)', borderRadius: '12px', display: 'flex', flexDirection: 'column', boxShadow: '0 12px 48px rgba(0,0,0,0.2)', margin: 'auto' }}>
-            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-surface)' }}>
-              <h2 className="text-title" style={{ fontSize: '18px' }}>Review Draft</h2>
-              <button className="btn-minimal btn-minimal--ghost" onClick={() => setSelectedDraft(null)}><XCircle size={20} /></button>
+      {/* Viewing Published Article Modal */}
+      {viewingArticle && createPortal(
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '24px' }}>
+          <div className="card-minimal animate-entry" style={{ width: '100%', maxWidth: '800px', maxHeight: '90vh', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', padding: 0 }}>
+            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 className="text-title" style={{ fontSize: '24px', marginBottom: '8px' }}>{viewingArticle.title}</h2>
+                <span className="text-meta" style={{ color: 'var(--fg-muted)' }}>Published {new Date(viewingArticle.publishedAt).toLocaleDateString()}</span>
+              </div>
+              <button className="btn-minimal btn-minimal--ghost" onClick={() => setViewingArticle(null)} style={{ padding: '8px' }}>
+                <XCircle size={24} />
+              </button>
             </div>
             
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ padding: '32px', overflowY: 'auto', flex: 1 }}>
+              <div className="text-body" style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--fg-primary)', whiteSpace: 'pre-wrap' }}>
+                {viewingArticle.content}
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Draft Review Modal */}
+      {selectedDraft && createPortal(
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, padding: '24px' }}>
+          <div className="card-minimal animate-entry" style={{ width: '100%', maxWidth: '900px', maxHeight: '90vh', background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column', padding: 0 }}>
+            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <label className="text-meta" style={{ display: 'block', marginBottom: '8px' }}>Title</label>
+                 <h2 className="text-title" style={{ fontSize: '20px' }}>Review Draft</h2>
+                 <p className="text-meta" style={{ color: 'var(--fg-secondary)', marginTop: '4px' }}>Source Ticket: <span className="text-code">{selectedDraft.sourceTicketId?.substring(0, 8)}</span></p>
+              </div>
+              <button className="btn-minimal btn-minimal--ghost" onClick={() => setSelectedDraft(null)} style={{ padding: '8px' }}>
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            <div style={{ padding: '32px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div>
+                <label className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-secondary)' }}>Title</label>
                 <input 
                   type="text" 
                   className="input-minimal" 
                   value={draftEdit.title} 
                   onChange={(e) => setDraftEdit({...draftEdit, title: e.target.value})}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', fontSize: '16px', fontWeight: 500 }}
                 />
               </div>
               
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <label className="text-meta" style={{ display: 'block', marginBottom: '8px' }}>Content (Markdown)</label>
+                <label className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-secondary)' }}>Content (Markdown)</label>
                 <textarea 
                   className="input-minimal" 
                   value={draftEdit.content} 
                   onChange={(e) => setDraftEdit({...draftEdit, content: e.target.value})}
-                  style={{ width: '100%', minHeight: '300px', resize: 'vertical' }}
+                  style={{ width: '100%', minHeight: '300px', flex: 1, resize: 'vertical', fontSize: '14px', lineHeight: 1.6 }}
                 />
               </div>
 
-              <div style={{ background: 'var(--bg-surface-alt)', padding: '16px', borderRadius: '8px' }}>
-                <label className="text-meta" style={{ display: 'block', marginBottom: '8px' }}>Rejection Reason (only if rejecting)</label>
+              <div style={{ background: 'var(--bg-surface-alt)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-primary)' }}>
+                <label className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-secondary)' }}>Rejection Reason (only if rejecting)</label>
                 <input 
                   type="text" 
                   className="input-minimal" 
                   placeholder="Why is this not a good article?"
                   value={rejectReason} 
                   onChange={(e) => setRejectReason(e.target.value)}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', background: 'var(--bg-surface)' }}
                 />
               </div>
             </div>
 
-            <div style={{ padding: '24px', borderTop: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div style={{ padding: '24px 32px', borderTop: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'flex-end', gap: '16px', background: 'var(--bg-surface-alt)', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
               <button 
                 className="btn-minimal btn-minimal--ghost" 
                 onClick={rejectDraft}
                 disabled={!rejectReason || isRejecting}
-                style={{ color: 'var(--destructive)' }}
+                style={{ color: 'var(--destructive)', padding: '8px 24px' }}
               >
-                {isRejecting ? <Loader2 className="spin" size={16} /> : 'Reject'}
+                {isRejecting ? <Spinner style={{ animation: 'spin 1s linear infinite' }} size={18} /> : 'Reject Draft'}
               </button>
               <button 
                 className="btn-minimal btn-minimal--primary" 
                 onClick={publishDraft}
                 disabled={!draftEdit.content || isPublishing}
+                style={{ padding: '8px 24px', display: 'flex', gap: '8px', alignItems: 'center' }}
               >
-                {isPublishing ? <Loader2 className="spin" size={16} /> : <><CheckCircle2 size={16}/> Publish Article</>}
+                {isPublishing ? <Spinner style={{ animation: 'spin 1s linear infinite' }} size={18} /> : <><CheckCircle size={18} weight="bold"/> Publish Article</>}
               </button>
             </div>
           </div>

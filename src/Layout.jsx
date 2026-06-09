@@ -3,28 +3,27 @@ import { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useTheme } from './context/ThemeContext';
 import { useLanguage } from './context/LanguageContext';
-import CopyBadge from './components/CopyBadge';
 import {
-  LayoutDashboard,
+  SquaresFour,
   CreditCard,
-  Settings,
+  Gear,
   Users,
   Ticket,
-  BookOpen,
-  LogOut,
-  Building2,
+  BookOpenText,
+  SignOut,
+  Buildings,
   User,
   Moon,
   Sun,
-  Globe
-} from 'lucide-react';
+  GlobeHemisphereWest
+} from '@phosphor-icons/react';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, disabled: true },
+  { to: '/dashboard', label: 'Dashboard', icon: SquaresFour, disabled: false },
   { to: '/tickets', label: 'Tickets', icon: Ticket, disabled: false },
-  { to: '/knowledge-base', label: 'Knowledge Base', icon: BookOpen, disabled: false },
+  { to: '/knowledge-base', label: 'Knowledge Base', icon: BookOpenText, disabled: false },
   { to: '/billing', label: 'Billing', icon: CreditCard, disabled: false },
-  { to: '/organization', label: 'Organization', icon: Settings, disabled: true },
+  { to: '/organization', label: 'Organization', icon: Gear, disabled: false },
   { to: '/users', label: 'Users', icon: Users, disabled: false },
 ];
 
@@ -65,52 +64,72 @@ export default function Layout() {
 
         <div style={{ padding: '20px', borderBottom: '1px solid var(--border-primary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <Building2 size={14} style={{ color: 'var(--fg-muted)' }} />
+            <Buildings size={16} weight="bold" style={{ color: 'var(--fg-muted)' }} />
             <span className="text-meta">Workspace</span>
           </div>
-          <p className="text-title" style={{ fontSize: '15px', marginBottom: '8px' }}>
+          <p className="text-title" style={{ fontSize: '15px' }}>
             {organization?.name}
           </p>
-          <CopyBadge value={organization?.id} compact />
         </div>
 
-        <nav style={{ flex: 1, padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
-          <div style={{ padding: '0 8px', marginBottom: '8px' }}>
-            <span className="text-meta" style={{ fontSize: '12px' }}>Menu</span>
+        <nav style={{ flex: 1, padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto' }}>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ padding: '0 8px', marginBottom: '8px' }}>
+              <span className="text-meta" style={{ fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Workspace</span>
+            </div>
+            
+            {NAV_ITEMS.filter(item => ['/dashboard', '/tickets', '/knowledge-base'].includes(item.to)).map(item => {
+              const isManager = user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR' || user?.role === 'SYSTEM';
+              const isOperator = user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR';
+              
+              if (item.to === '/dashboard' && !isManager) return null;
+              if (!isManager && !isOperator && item.to === '/knowledge-base') return null;
+
+              const isActive = location.pathname === item.to;
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.to}
+                  to={item.disabled ? '#' : item.to}
+                  className={`nav-item ${isActive ? 'nav-item--active' : ''} ${item.disabled ? 'nav-item--disabled' : ''}`}
+                  onClick={item.disabled ? (e) => e.preventDefault() : undefined}
+                >
+                  <Icon size={18} weight={isActive ? "fill" : "bold"} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
 
-          {NAV_ITEMS.map((item) => {
-            // Role-based visibility logic
-            const isManager = user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR' || user?.role === 'SYSTEM';
-            const isOperator = user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR';
-            
-            const adminRoutes = ['/users', '/billing', '/organization'];
-            if (!isManager && adminRoutes.includes(item.to)) {
-              return null; // Hide admin routes for normal employees/operators
-            }
+          {(user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR' || user?.role === 'SYSTEM') && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ padding: '0 8px', marginBottom: '8px' }}>
+                <span className="text-meta" style={{ fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Administration</span>
+              </div>
+              
+              {NAV_ITEMS.filter(item => ['/users', '/billing', '/organization'].includes(item.to)).map(item => {
+                const isActive = location.pathname === item.to;
+                const Icon = item.icon;
 
-            if (!isManager && !isOperator && item.to === '/knowledge-base') {
-              return null; // Hide Knowledge Base for employees
-            }
-
-            const isActive = location.pathname === item.to;
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.to}
-                to={item.disabled ? '#' : item.to}
-                className={`nav-item ${isActive ? 'nav-item--active' : ''} ${item.disabled ? 'nav-item--disabled' : ''}`}
-                onClick={item.disabled ? (e) => e.preventDefault() : undefined}
-              >
-                <Icon size={16} />
-                <span>{item.label}</span>
-                {item.disabled && (
-                  <span className="status-dot status-dot--offline" style={{ marginLeft: 'auto' }} />
-                )}
-              </Link>
-            );
-          })}
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.disabled ? '#' : item.to}
+                    className={`nav-item ${isActive ? 'nav-item--active' : ''} ${item.disabled ? 'nav-item--disabled' : ''}`}
+                    onClick={item.disabled ? (e) => e.preventDefault() : undefined}
+                  >
+                    <Icon size={18} weight={isActive ? "fill" : "bold"} />
+                    <span>{item.label}</span>
+                    {item.disabled && (
+                      <span className="status-dot status-dot--offline" style={{ marginLeft: 'auto' }} />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -122,7 +141,7 @@ export default function Layout() {
                 style={{ flex: 1, padding: '8px' }}
                 title="Toggle theme"
               >
-                {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+                {theme === 'dark' ? <Sun size={16} weight="bold" /> : <Moon size={16} weight="bold" />}
                 <span style={{ fontSize: '12px', marginLeft: '6px' }}>Theme</span>
               </button>
 
@@ -132,7 +151,7 @@ export default function Layout() {
                 style={{ flex: 1, padding: '8px' }}
                 title="Toggle language"
               >
-                <Globe size={14} />
+                <GlobeHemisphereWest size={16} weight="bold" />
                 <span style={{ fontSize: '12px', marginLeft: '6px', fontWeight: 600 }}>
                   {language.toUpperCase()}
                 </span>
@@ -145,7 +164,7 @@ export default function Layout() {
             className="btn-minimal btn-minimal--ghost"
             style={{ width: '100%', justifyContent: 'flex-start', padding: '8px' }}
           >
-            <Settings size={16} />
+            <Gear size={18} weight="bold" />
             <span style={{ flex: 1, textAlign: 'left' }}>Preferences</span>
           </button>
         </div>
@@ -153,16 +172,15 @@ export default function Layout() {
         <div style={{ borderTop: '1px solid var(--border-primary)', padding: '20px' }}>
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <User size={14} style={{ color: 'var(--fg-muted)' }} />
+              <User size={16} weight="bold" style={{ color: 'var(--fg-muted)' }} />
               <span className="text-meta">Session</span>
             </div>
             <p className="text-title" style={{ fontSize: '14px', marginBottom: '2px' }}>
               {user?.fullName}
             </p>
-            <p className="text-meta" style={{ fontSize: '13px', marginBottom: '8px' }}>
+            <p className="text-meta" style={{ fontSize: '13px' }}>
               {user?.email}
             </p>
-            <CopyBadge value={user?.id} compact />
           </div>
 
           <button
@@ -170,7 +188,7 @@ export default function Layout() {
             className="btn-minimal btn-minimal--ghost"
             style={{ width: '100%', justifyContent: 'flex-start', padding: '8px 0' }}
           >
-            <LogOut size={16} style={{ color: 'var(--fg-muted)' }} />
+            <SignOut size={18} weight="bold" style={{ color: 'var(--fg-muted)' }} />
             <span>Sign out</span>
           </button>
         </div>

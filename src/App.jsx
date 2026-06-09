@@ -28,9 +28,19 @@ function ProtectedRoute({ children }) {
 }
 
 function PublicRoute({ children }) {
-  const { isAuthenticated, hasOrganization } = useAuth();
+  const { isAuthenticated, hasOrganization, organization, user } = useAuth();
+  
   if (isAuthenticated) {
-    if (hasOrganization) return <Navigate to="/billing" replace />;
+    if (hasOrganization) {
+      const isManager = user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR' || user?.role === 'SYSTEM';
+      const hasSubscription = organization?.tier && organization.tier !== 'FREE';
+      
+      // If manager and no subscription, force to billing. Otherwise, everyone to dashboard.
+      if (isManager && !hasSubscription) {
+        return <Navigate to="/billing" replace />;
+      }
+      return <Navigate to="/dashboard" replace />;
+    }
     return <Navigate to="/register" replace />;
   }
   return children;

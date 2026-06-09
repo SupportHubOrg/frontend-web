@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Loader2, ArrowLeft, Send, AlertCircle, User, Bot, Sparkles, CheckCircle2, HelpCircle } from 'lucide-react';
+import { Spinner, ArrowLeft, PaperPlaneRight, WarningCircle, UserCircle, Robot, CaretDown, Lightbulb, Warning } from '@phosphor-icons/react';
 
 export default function TicketDetail({ ticketId, onBack }) {
   const { token, user } = useAuth();
@@ -110,8 +110,8 @@ export default function TicketDetail({ ticketId, onBack }) {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '48px', display: 'flex', justifyContent: 'center', color: 'var(--fg-secondary)' }}>
-        <Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} />
+      <div style={{ padding: '64px', display: 'flex', justifyContent: 'center', color: 'var(--fg-muted)' }}>
+        <Spinner size={32} style={{ animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
@@ -119,11 +119,11 @@ export default function TicketDetail({ ticketId, onBack }) {
   if (error && !ticket) {
     return (
       <div>
-        <button onClick={onBack} className="btn-minimal btn-minimal--secondary" style={{ marginBottom: '24px', padding: '8px 16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <ArrowLeft size={18} /> Back to Tickets
+        <button onClick={onBack} className="btn-minimal btn-minimal--ghost" style={{ marginBottom: '24px', padding: '8px 0', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <ArrowLeft size={16} weight="bold" /> Back to Tickets
         </button>
         <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(212, 64, 64, 0.08)', display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--destructive)', fontSize: '14px', fontWeight: 500 }}>
-          <AlertCircle size={18} />
+          <Warning size={18} weight="bold" />
           {error}
         </div>
       </div>
@@ -131,174 +131,200 @@ export default function TicketDetail({ ticketId, onBack }) {
   }
 
   return (
-    <div className="animate-entry" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
+    <div className="animate-entry" style={{ maxWidth: '1100px' }}>
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <button onClick={onBack} className="btn-minimal btn-minimal--secondary" style={{ marginBottom: '24px', padding: '8px 16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <ArrowLeft size={18} /> Back to Tickets
+      <div style={{ marginBottom: '32px' }}>
+        <button onClick={onBack} className="btn-minimal btn-minimal--ghost" style={{ marginBottom: '24px', padding: '8px 0', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <ArrowLeft size={16} weight="bold" /> Back to Tickets
         </button>
+        
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 className="text-title" style={{ fontSize: '24px', marginBottom: '8px' }}>
+            <h1 className="text-title" style={{ fontSize: '28px', marginBottom: '8px', lineHeight: 1.2 }}>
               {ticket?.subject}
             </h1>
-            <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: 'var(--fg-secondary)' }}>
-              <span>ID: {ticket?.id?.substring(0, 8)}</span>
-              <span>Created: {new Date(ticket?.createdAt).toLocaleString()}</span>
+            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--fg-muted)' }}>
+              <span className="text-code">#{ticket?.id?.substring(0, 8)}</span>
+              <span>Created {new Date(ticket?.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
             </div>
           </div>
-          <span className={`tag-pastel ${['CLOSED', 'IN_KNOWLEDGE_BASE', 'NOT_IN_KNOWLEDGE_BASE'].includes(ticket?.status) ? 'tag-pastel--green' : ['NEW', 'UNASSIGNED'].includes(ticket?.status) ? 'tag-pastel--blue' : 'tag-pastel--orange'}`}>
-            {ticket?.status?.replace(/_/g, ' ') || 'NEW'}
-          </span>
         </div>
       </div>
 
       {error && (
         <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(212, 64, 64, 0.08)', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', color: 'var(--destructive)', fontSize: '14px', fontWeight: 500 }}>
-          <AlertCircle size={18} />
+          <Warning size={18} weight="bold" />
           {error}
         </div>
       )}
 
-      {/* Main Content Area: split into description & chat */}
-      <div style={{ display: 'flex', gap: '32px', flex: 1, minHeight: 0 }}>
+      {/* Main Grid Layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 280px', gap: '48px', alignItems: 'start' }}>
         
-        {/* Left Side: Ticket Description & Details */}
-        <div style={{ width: '300px', display: 'flex', flexDirection: 'column', gap: '24px', flexShrink: 0 }}>
+        {/* Left Column: Thread & Reply */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '64px' }}>
           
-          {/* Ticket Actions Block */}
-          {(user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR' || user?.role === 'SUPPORT_HUB_ADMINISTRATOR') && (
-            <div className="card-minimal" style={{ padding: '24px' }}>
-              <h3 className="text-meta" style={{ marginBottom: '16px', color: 'var(--fg-secondary)' }}>Ticket Actions</h3>
-              
-              {/* Unassigned or New Ticket Case -> Assign to Me */}
-              {['NEW', 'UNASSIGNED'].includes(ticket?.status) && (user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR') && (
-                <button 
-                  onClick={() => handleUpdateTicket(user.role === 'LEVEL_1_OPERATOR' ? 'IN_PROGRESS_LEVEL_1' : 'IN_PROGRESS_LEVEL_2', user.id)}
-                  disabled={isUpdating}
-                  className="btn-minimal btn-minimal--primary"
-                  style={{ width: '100%', marginBottom: '16px', justifyContent: 'center' }}
-                >
-                  {isUpdating ? <Loader2 size={16} className="spin" /> : 'Assign to Me'}
-                </button>
-              )}
+          {/* Original Request (Description) */}
+          <div className="card-minimal" style={{ padding: '24px', background: 'var(--bg-primary)', border: '1px solid var(--border-primary)' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+               <UserCircle size={24} weight="fill" style={{ color: 'var(--fg-muted)' }} />
+               <div>
+                 <span className="text-meta" style={{ display: 'block', color: 'var(--fg-primary)' }}>Original Request</span>
+               </div>
+             </div>
+             <div className="text-body" style={{ fontSize: '14px', whiteSpace: 'pre-wrap', color: 'var(--fg-primary)', paddingLeft: '36px', lineHeight: 1.6 }}>
+               {ticket?.description}
+             </div>
+          </div>
 
-              {/* Status Update Dropdown */}
-              {(user?.role === 'ORGANIZATION_MANAGER' || ticket?.assignedOperatorId === user?.id) && (
-                <div>
-                  <label className="text-meta" style={{ display: 'block', marginBottom: '8px' }}>Update Status</label>
+          {/* Activity Feed */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+             {messages.map(msg => {
+               const isAI = msg.senderType === 'AI';
+               const isMine = msg.senderId === user?.id;
+               
+               return (
+                 <div key={msg.id} style={{ display: 'flex', gap: '12px' }}>
+                   {isAI ? (
+                     <Robot size={24} weight="fill" style={{ color: 'var(--tag-blue-fg)', flexShrink: 0 }} />
+                   ) : (
+                     <UserCircle size={24} weight="fill" style={{ color: isMine ? 'var(--fg-primary)' : 'var(--fg-muted)', flexShrink: 0 }} />
+                   )}
+                   <div style={{ flex: 1 }}>
+                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '6px' }}>
+                       <span className="text-meta" style={{ color: 'var(--fg-primary)', fontWeight: 600 }}>
+                         {isAI ? 'AI Assistant' : (msg.senderType || 'User')}
+                       </span>
+                       <span className="text-meta" style={{ fontSize: '11px', color: 'var(--fg-muted)' }}>
+                         {new Date(msg.sentAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                       </span>
+                     </div>
+                     <div className="text-body" style={{ 
+                       fontSize: '14px', 
+                       whiteSpace: 'pre-wrap', 
+                       color: 'var(--fg-primary)',
+                       background: isAI ? 'var(--bg-inset)' : 'transparent',
+                       padding: isAI ? '12px 16px' : '0',
+                       borderRadius: isAI ? '8px' : '0',
+                       border: isAI ? '1px solid var(--border-primary)' : 'none',
+                       lineHeight: 1.6
+                     }}>
+                       {msg.message}
+                     </div>
+                   </div>
+                 </div>
+               );
+             })}
+          </div>
+
+          {/* Reply Box */}
+          <div className="card-minimal" style={{ padding: '16px', position: 'sticky', bottom: '24px', boxShadow: '0 -12px 24px var(--bg-primary)' }}>
+            <form onSubmit={handleSendMessage} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <textarea 
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Write a reply..."
+                className="input-minimal"
+                style={{ minHeight: '100px', resize: 'vertical', border: 'none', background: 'transparent', padding: '0 8px', fontSize: '14px', boxShadow: 'none' }}
+                disabled={isSending}
+                autoFocus
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-primary)', paddingTop: '12px' }}>
+                <span className="text-meta" style={{ fontSize: '12px', color: 'var(--fg-muted)', paddingLeft: '8px' }}>
+                  Press Send to reply
+                </span>
+                <button 
+                  type="submit" 
+                  disabled={isSending || !newMessage.trim()}
+                  className="btn-minimal btn-minimal--primary"
+                  style={{ padding: '8px 16px', display: 'flex', gap: '8px', alignItems: 'center', borderRadius: '99px' }}
+                >
+                  {isSending ? <Spinner size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <PaperPlaneRight size={16} weight="bold" />}
+                  Send Reply
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Column: Sidebar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'sticky', top: '24px' }}>
+          
+          {/* Properties Card */}
+          <div className="card-minimal" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h3 className="text-title" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-secondary)' }}>Properties</h3>
+            
+            {/* Status */}
+            <div>
+              <label className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-muted)' }}>Status</label>
+              {(user?.role === 'ORGANIZATION_MANAGER' || ticket?.assignedOperatorId === user?.id) ? (
+                <div style={{ position: 'relative' }}>
                   <select 
                     className="input-minimal" 
                     value={ticket?.status || 'NEW'} 
                     onChange={(e) => handleUpdateTicket(e.target.value, ticket.assignedOperatorId)}
                     disabled={isUpdating}
-                    style={{ width: '100%', padding: '10px 12px' }}
+                    style={{ width: '100%', padding: '8px 12px', fontSize: '13px', appearance: 'none', background: 'var(--bg-inset)' }}
                   >
-                    {user?.role === 'ORGANIZATION_MANAGER' && <option value="NEW">New</option>}
-                    <option value="UNASSIGNED">Unassigned (Return to Queue)</option>
-                    
-                    {(user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_1_OPERATOR') && (
-                      <option value="IN_PROGRESS_LEVEL_1">In Progress</option>
-                    )}
-                    
-                    {(user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_2_OPERATOR') && (
-                      <option value="IN_PROGRESS_LEVEL_2">In Progress (Escalated)</option>
-                    )}
-                    
-                    <option value="AWAITING_CUSTOMER_RESPONSE">Awaiting Customer Response</option>
+                    <option value="NEW">New</option>
+                    <option value="UNASSIGNED">Unassigned</option>
+                    <option value="IN_PROGRESS_LEVEL_1">In Progress (L1)</option>
+                    <option value="IN_PROGRESS_LEVEL_2">In Progress (L2)</option>
+                    <option value="AWAITING_CUSTOMER_RESPONSE">Awaiting Response</option>
                     <option value="CLOSED">Closed (Resolved)</option>
+                    <option value="SOLUTION_IMPOSSIBLE">Solution Impossible</option>
                   </select>
+                  <CaretDown size={14} weight="bold" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--fg-muted)' }} />
                 </div>
-              )}
-
-              {/* Propose to Knowledge Base Button */}
-              {ticket?.status === 'CLOSED' && (user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR') && (
-                <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-primary)', paddingTop: '16px' }}>
-                  <button 
-                    onClick={handleProposeArticle}
-                    disabled={isProposing}
-                    className="btn-minimal btn-minimal--ghost"
-                    style={{ width: '100%', justifyContent: 'center', color: 'var(--fg-secondary)' }}
-                  >
-                    {isProposing ? <Loader2 size={16} className="spin" /> : 'Suggest to Knowledge Base'}
-                  </button>
+              ) : (
+                <div style={{ fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className={`status-dot ${ticket?.status === 'CLOSED' ? 'status-dot--offline' : 'status-dot--online'}`} />
+                  {ticket?.status?.replace(/_/g, ' ') || 'NEW'}
                 </div>
               )}
             </div>
+
+            {/* Assignee */}
+            <div>
+              <label className="text-meta" style={{ display: 'block', marginBottom: '8px', color: 'var(--fg-muted)' }}>Assignee</label>
+              {['NEW', 'UNASSIGNED'].includes(ticket?.status) && (user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR') ? (
+                <button 
+                  onClick={() => handleUpdateTicket(user.role === 'LEVEL_1_OPERATOR' ? 'IN_PROGRESS_LEVEL_1' : 'IN_PROGRESS_LEVEL_2', user.id)}
+                  disabled={isUpdating}
+                  className="btn-minimal btn-minimal--ghost"
+                  style={{ width: '100%', justifyContent: 'flex-start', padding: '6px 0', fontSize: '13px' }}
+                >
+                  {isUpdating ? <Spinner size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Assign to me'}
+                </button>
+              ) : (
+                 <div style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                   <UserCircle size={16} weight="fill" style={{ color: 'var(--fg-muted)' }} />
+                   {ticket?.assignedOperatorId === user?.id ? 'You' : (ticket?.assignedOperatorId || 'Unassigned')}
+                 </div>
+              )}
+            </div>
+            
+          </div>
+
+          {/* Actions Card (if applicable) */}
+          {ticket?.status === 'CLOSED' && (user?.role === 'ORGANIZATION_MANAGER' || user?.role === 'LEVEL_1_OPERATOR' || user?.role === 'LEVEL_2_OPERATOR') && (
+            <div className="card-minimal" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h3 className="text-title" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-secondary)' }}>Knowledge Base</h3>
+              <p className="text-meta" style={{ fontSize: '12px', color: 'var(--fg-muted)', lineHeight: 1.5 }}>
+                If the solution is valuable, propose it as an article.
+              </p>
+              <button 
+                onClick={handleProposeArticle}
+                disabled={isProposing}
+                className="btn-minimal btn-minimal--secondary"
+                style={{ width: '100%', justifyContent: 'center', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center' }}
+              >
+                {isProposing ? <Spinner size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Lightbulb size={16} weight="bold" />}
+                Suggest Article
+              </button>
+            </div>
           )}
 
-          <div className="card-minimal" style={{ padding: '24px' }}>
-            <h3 className="text-meta" style={{ marginBottom: '12px', color: 'var(--fg-secondary)' }}>Description</h3>
-            <p className="text-body" style={{ fontSize: '14px', whiteSpace: 'pre-wrap', color: 'var(--fg-primary)' }}>
-              {ticket?.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Right Side: Chat / Messages */}
-        <div className="card-minimal" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Chat Messages Area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {messages.length === 0 ? (
-              <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--fg-muted)' }}>
-                <p className="text-body" style={{ fontSize: '14px' }}>No messages yet.</p>
-                <p className="text-meta">Start the conversation below.</p>
-              </div>
-            ) : (
-              messages.map(msg => {
-                const isMine = msg.senderId === user?.id; // user might not be correctly synced, fallback to generic view
-                const isAI = msg.senderType === 'AI';
-                
-                return (
-                  <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      {isAI && <Bot size={14} color="var(--tag-blue-fg)" />}
-                      <span className="text-meta" style={{ fontSize: '11px', color: isAI ? 'var(--tag-blue-fg)' : 'var(--fg-muted)', fontWeight: isAI ? 600 : 400 }}>
-                        {isAI ? 'AI Assistant' : (msg.senderType || 'User')} • {new Date(msg.sentAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    </div>
-                    <div style={{ 
-                      padding: '12px 16px', 
-                      borderRadius: '12px', 
-                      background: isAI ? 'var(--tag-blue-bg)' : (isMine ? 'var(--fg-primary)' : 'var(--bg-inset)'),
-                      color: isMine && !isAI ? 'var(--bg-primary)' : (isAI ? 'var(--tag-blue-fg)' : 'var(--fg-primary)'),
-                      maxWidth: '85%',
-                      border: isAI ? '1px solid rgba(31, 108, 159, 0.2)' : (isMine ? 'none' : '1px solid var(--border-primary)'),
-                      borderBottomRightRadius: isMine ? '4px' : '12px',
-                      borderBottomLeftRadius: !isMine ? '4px' : '12px',
-                    }}>
-                      <p className="text-body" style={{ fontSize: '14px', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-                        {msg.message}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Chat Input Area */}
-          <div style={{ padding: '16px', borderTop: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }}>
-            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '12px' }}>
-              <input 
-                type="text" 
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="input-minimal"
-                style={{ flex: 1, padding: '12px 16px', background: 'var(--bg-inset)', border: '1px solid var(--border-primary)', borderRadius: '24px', fontSize: '14px' }}
-                disabled={isSending}
-              />
-              <button 
-                type="submit" 
-                disabled={isSending || !newMessage.trim()}
-                className="btn-minimal btn-minimal--primary"
-                style={{ width: '44px', height: '44px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-              >
-                {isSending ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={18} />}
-              </button>
-            </form>
-          </div>
         </div>
       </div>
     </div>
