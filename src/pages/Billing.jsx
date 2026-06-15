@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import CopyBadge from '../components/CopyBadge';
-import { Check, AlertCircle, Building2, Loader2, ArrowUpRight } from 'lucide-react';
+import { CheckCircle, Warning, Buildings, Spinner, ArrowUpRight, ShieldCheck, Lightning } from '@phosphor-icons/react';
 
 export default function Billing() {
   const { organization } = useAuth();
@@ -30,181 +29,199 @@ export default function Billing() {
   };
 
   return (
-    <div className="animate-entry">
-      <div style={{ marginBottom: '48px' }}>
-        <h1 className="text-title" style={{ fontSize: '32px', marginBottom: '12px' }}>
+    <div className="animate-entry" style={{ maxWidth: '1000px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '40px' }}>
+        <h1 className="text-title" style={{ fontSize: '28px', marginBottom: '8px' }}>
           Billing & Plans
         </h1>
-        <p className="text-body" style={{ color: 'var(--fg-secondary)', maxWidth: '600px' }}>
-          Manage your workspace subscription, payment methods, and billing history.
+        <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
+          Manage your workspace subscription and features.
         </p>
-      </div>
-
-      <div className="card-minimal" style={{ padding: '24px', marginBottom: '48px', display: 'flex', alignItems: 'center', gap: '24px' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-inset)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Building2 size={20} style={{ color: 'var(--fg-secondary)' }} />
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
-            <span className="text-title" style={{ fontSize: '18px' }}>
-              {organization?.name}
-            </span>
-            <span className="tag-pastel tag-pastel--green">
-              Plan: {activePlan}
-            </span>
-            {organization?.creationConfirmationStatus && (
-              <span className={`tag-pastel ${organization.creationConfirmationStatus === 'PENDING' ? 'tag-pastel--blue' : 'tag-pastel--green'}`}>
-                Status: {organization.creationConfirmationStatus}
-              </span>
-            )}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="text-meta">Workspace ID:</span>
-            <CopyBadge value={organization?.id} compact />
-          </div>
-        </div>
       </div>
 
       {error && (
         <div style={{ padding: '16px', borderRadius: '8px', background: 'rgba(212, 64, 64, 0.08)', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', color: 'var(--destructive)', fontSize: '14px', fontWeight: 500 }}>
-          <AlertCircle size={18} />
+          <Warning size={18} weight="bold" />
           {error}
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+      {/* Current Plan Banner */}
+      <div className="card-minimal" style={{ padding: '32px', marginBottom: '48px', display: 'flex', flexDirection: 'column', gap: '24px', border: '1px solid var(--border-primary)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <Buildings size={16} weight="bold" style={{ color: 'var(--fg-muted)' }} />
+              <span className="text-meta" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Workspace</span>
+            </div>
+            <h2 className="text-title" style={{ fontSize: '24px', marginBottom: '4px' }}>
+              {organization?.name}
+            </h2>
+            {organization?.creationConfirmationStatus === 'PENDING' && (
+              <span style={{ fontSize: '12px', color: 'var(--tag-yellow-fg)', background: 'var(--tag-yellow-bg)', padding: '2px 8px', borderRadius: '4px', fontWeight: 500 }}>
+                Verification Pending
+              </span>
+            )}
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <span className="text-meta" style={{ display: 'block', marginBottom: '4px' }}>Active Plan</span>
+            <span className={`tag-pastel ${activePlan === 'PRO' ? 'tag-pastel--green' : 'tag-pastel--blue'}`} style={{ fontSize: '14px', padding: '4px 12px' }}>
+              {activePlan}
+            </span>
+          </div>
+        </div>
 
-        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column' }}>
+        {activePlan === 'FREE' ? (
+          <div style={{ background: 'var(--bg-inset)', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+               <Lightning size={20} weight="fill" style={{ color: 'var(--tag-orange-fg)' }} />
+               <span className="text-body" style={{ fontSize: '14px', fontWeight: 500 }}>Unlock premium features by upgrading to Pro.</span>
+            </div>
+          </div>
+        ) : (
+           <div style={{ background: 'rgba(52, 211, 153, 0.05)', border: '1px solid rgba(52, 211, 153, 0.2)', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <ShieldCheck size={20} weight="fill" style={{ color: 'rgb(16, 185, 129)' }} />
+                <span className="text-body" style={{ fontSize: '14px', fontWeight: 500, color: 'var(--fg-primary)' }}>Your workspace is on the Pro plan. All premium features are unlocked.</span>
+             </div>
+           </div>
+        )}
+      </div>
+
+      {/* Available Plans Grid */}
+      <div style={{ marginBottom: '24px' }}>
+        <h3 className="text-title" style={{ fontSize: '16px', marginBottom: '16px' }}>Available Plans</h3>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+
+        {/* Free Plan */}
+        <div className="card-minimal" style={{ padding: '24px', display: 'flex', flexDirection: 'column', opacity: activePlan === 'FREE' ? 1 : 0.6 }}>
           <div style={{ marginBottom: '24px' }}>
-            <h3 className="text-title" style={{ fontSize: '20px', marginBottom: '8px' }}>Free</h3>
-            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
-              Essential ticketing and support features for small teams starting out.
+            <h3 className="text-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Free</h3>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '13px' }}>
+              Essential features for small teams.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px' }}>
-            <span className="text-title" style={{ fontSize: '48px' }}>$0</span>
-            <span className="text-meta">/ month</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+            <span className="text-title" style={{ fontSize: '28px' }}>$0</span>
+            <span className="text-meta">/ mo</span>
           </div>
 
-          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
-
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {['Up to 3 agents', 'Basic ticketing', 'Community support', 'Standard SLA'].map((feature, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-secondary)' }}>
-                <Check size={16} style={{ color: 'var(--success)' }} />
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {['Up to 3 agents', 'Basic ticketing', 'Community support'].map((feature, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: 'var(--fg-secondary)' }}>
+                <CheckCircle size={16} weight="fill" style={{ color: 'var(--fg-muted)' }} />
                 {feature}
               </li>
             ))}
           </ul>
 
-          <button disabled={activePlan === 'FREE'} className="btn-minimal btn-minimal--secondary" style={{ width: '100%', marginTop: '40px', padding: '12px' }}>
-            {activePlan === 'FREE' ? 'Current Plan' : 'Downgrade to Free'}
+          <button disabled className="btn-minimal btn-minimal--ghost" style={{ width: '100%', marginTop: '32px', padding: '8px', cursor: 'default' }}>
+            {activePlan === 'FREE' ? 'Current Plan' : 'Downgrade via Support'}
           </button>
         </div>
 
-        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column' }}>
+        {/* Standard Plan (Disabled) */}
+        <div className="card-minimal" style={{ padding: '24px', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
           <div style={{ marginBottom: '24px' }}>
-            <h3 className="text-title" style={{ fontSize: '20px', marginBottom: '8px' }}>Standard</h3>
-            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
+            <h3 className="text-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Standard</h3>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '13px' }}>
               For growing teams that need more power.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px' }}>
-            <span className="text-title" style={{ fontSize: '48px' }}>$15</span>
-            <span className="text-meta">/ month</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+            <span className="text-title" style={{ fontSize: '28px' }}>$15</span>
+            <span className="text-meta">/ mo</span>
           </div>
 
-          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
-
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {['Up to 10 agents', 'Advanced routing', 'Email support', 'Standard SLA'].map((feature, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-secondary)' }}>
-                <Check size={16} style={{ color: 'var(--success)' }} />
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {['Up to 10 agents', 'Advanced routing', 'Email support'].map((feature, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: 'var(--fg-secondary)' }}>
+                <CheckCircle size={16} weight="fill" style={{ color: 'var(--fg-muted)' }} />
                 {feature}
               </li>
             ))}
           </ul>
 
-          <button disabled className="btn-minimal btn-minimal--secondary" style={{ width: '100%', marginTop: '40px', padding: '12px' }}>
+          <button disabled className="btn-minimal btn-minimal--ghost" style={{ width: '100%', marginTop: '32px', padding: '8px', cursor: 'default' }}>
             Coming Soon
           </button>
         </div>
 
-        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-
-          <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(113, 107, 200, 0.05) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
-
-          <div style={{ marginBottom: '24px', position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <h3 className="text-title" style={{ fontSize: '20px' }}>Pro</h3>
-              <span className="tag-pastel tag-pastel--blue">Recommended</span>
-            </div>
-            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
-              Advanced tools, automation, and priority support for scaling operations.
+        {/* Pro Plan */}
+        <div className="card-minimal" style={{ padding: '24px', display: 'flex', flexDirection: 'column', border: activePlan === 'PRO' ? '2px solid var(--fg-primary)' : '1px solid var(--border-primary)' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 className="text-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Pro</h3>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '13px' }}>
+              Advanced tools and automation for scaling.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px', position: 'relative' }}>
-            <span className="text-title" style={{ fontSize: '48px' }}>$50</span>
-            <span className="text-meta">/ month</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+            <span className="text-title" style={{ fontSize: '28px' }}>$50</span>
+            <span className="text-meta">/ mo</span>
           </div>
 
-          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
-
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
-            {['Unlimited agents', 'Advanced routing rules', '24/7 Priority support', 'Custom SLA', 'Advanced Analytics'].map((feature, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-primary)' }}>
-                <Check size={16} style={{ color: 'var(--success)' }} />
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {['Unlimited agents', 'Priority support', 'Custom SLA', 'Analytics'].map((feature, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: 'var(--fg-primary)' }}>
+                <CheckCircle size={16} weight="fill" style={{ color: 'var(--success)' }} />
                 {feature}
               </li>
             ))}
           </ul>
 
-          <button onClick={handleUpgrade} disabled={isLoading || activePlan === 'PRO'} className={`btn-minimal ${activePlan === 'PRO' ? 'btn-minimal--secondary' : 'btn-minimal--primary'}`} style={{ width: '100%', marginTop: '40px', padding: '12px', position: 'relative' }}>
+          <button 
+            onClick={handleUpgrade} 
+            disabled={isLoading || activePlan === 'PRO'} 
+            className={`btn-minimal ${activePlan === 'PRO' ? 'btn-minimal--ghost' : 'btn-minimal--primary'}`} 
+            style={{ width: '100%', marginTop: '32px', padding: '10px', display: 'flex', justifyContent: 'center', gap: '8px' }}
+          >
             {isLoading ? (
-              <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
+              <Spinner size={16} style={{ animation: 'spin 1s linear infinite' }} />
             ) : activePlan === 'PRO' ? (
               'Current Plan'
             ) : (
-              <>Upgrade to Pro <ArrowUpRight size={16} /></>
+              <>Upgrade to Pro <ArrowUpRight size={14} weight="bold" /></>
             )}
           </button>
         </div>
 
-        <div className="card-minimal" style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column' }}>
+        {/* Enterprise Plan (Disabled) */}
+        <div className="card-minimal" style={{ padding: '24px', display: 'flex', flexDirection: 'column', opacity: 0.6 }}>
           <div style={{ marginBottom: '24px' }}>
-            <h3 className="text-title" style={{ fontSize: '20px', marginBottom: '8px' }}>Enterprise</h3>
-            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '14px' }}>
-              Custom solutions for large organizations.
+            <h3 className="text-title" style={{ fontSize: '16px', marginBottom: '4px' }}>Enterprise</h3>
+            <p className="text-body" style={{ color: 'var(--fg-secondary)', fontSize: '13px' }}>
+              Custom solutions for large orgs.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '32px' }}>
-            <span className="text-title" style={{ fontSize: '48px' }}>Custom</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+            <span className="text-title" style={{ fontSize: '28px' }}>Custom</span>
           </div>
 
-          <div style={{ height: '1px', background: 'var(--border-primary)', margin: '0 -32px 32px' }} />
-
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {['Dedicated success manager', 'Custom integrations', 'White-labeling', 'On-premise option'].map((feature, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', color: 'var(--fg-secondary)' }}>
-                <Check size={16} style={{ color: 'var(--success)' }} />
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {['Dedicated manager', 'Custom integrations', 'White-labeling', 'On-premise option'].map((feature, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: 'var(--fg-secondary)' }}>
+                <CheckCircle size={16} weight="fill" style={{ color: 'var(--fg-muted)' }} />
                 {feature}
               </li>
             ))}
           </ul>
 
-          <button disabled className="btn-minimal btn-minimal--secondary" style={{ width: '100%', marginTop: '40px', padding: '12px' }}>
+          <button disabled className="btn-minimal btn-minimal--ghost" style={{ width: '100%', marginTop: '32px', padding: '8px', cursor: 'default' }}>
             Contact Sales
           </button>
         </div>
+
       </div>
 
-      <p className="text-meta" style={{ textAlign: 'center', marginTop: '48px', fontSize: '12px' }}>
-        Payment is securely processed via Stripe. Your workspace ID is sent to the billing service for checkout creation.
+      <p className="text-meta" style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px', color: 'var(--fg-muted)' }}>
+        Payment is securely processed via Stripe. Cancel anytime.
       </p>
     </div>
   );
