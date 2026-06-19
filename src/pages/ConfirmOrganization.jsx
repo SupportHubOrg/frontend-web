@@ -32,7 +32,7 @@ export default function ConfirmOrganization() {
       }
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/${orgId}/creation-confirmation/${token}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/${orgId}/creation-confirmation/${token}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

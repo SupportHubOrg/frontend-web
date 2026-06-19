@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { LogOut } from 'lucide-react';
 
 export default function Register() {
   const { user, getToken, checkUserOrganization } = useAuth();
@@ -24,7 +25,7 @@ export default function Register() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,6 +58,10 @@ export default function Register() {
         <Link to="/" className="text-title text-xl tracking-tight text-[var(--fg-primary)] hover:opacity-70 transition-opacity">
           SupportHub
         </Link>
+        <button onClick={useAuth().logout} className="btn-minimal btn-minimal--ghost">
+          <LogOut size={16} />
+          <span>Sign Out</span>
+        </button>
       </header>
 
       <main className="flex-1 flex items-center justify-center p-6">

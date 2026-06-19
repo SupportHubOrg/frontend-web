@@ -25,7 +25,7 @@ export default function ConfirmInvitation() {
       setError(null);
       
       try {
-        await axios.put(`http://localhost:5000/api/organizations/users/${userId}/invitation-confirmation/${inviteToken}`, {}, {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users/${userId}/invitation-confirmation/${inviteToken}`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
         

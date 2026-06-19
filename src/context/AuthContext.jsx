@@ -4,9 +4,9 @@ import Keycloak from 'keycloak-js';
 const AuthContext = createContext(null);
 
 const keycloakConfig = {
-  url: 'http://localhost:8085',
-  realm: 'supporthub',
-  clientId: 'supporthub-frontend'
+  url: import.meta.env.VITE_KEYCLOAK_URL || 'http://supporthub.local',
+  realm: import.meta.env.VITE_KEYCLOAK_REALM || 'supporthub',
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'supporthub-frontend'
 };
 
 // Initialize single instance outside of component lifecycle
@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
 
   const checkUserOrganization = useCallback(async (subject, token) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/users/${subject}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users/${subject}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
         setHasOrganization(!!data?.organizationId);
         setUser(prev => prev ? { ...prev, role: data.role } : null);
         if (data?.organizationId) {
-          const orgResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/organizations/${data.organizationId}`, {
+          const orgResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/${data.organizationId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (orgResponse.ok) {

@@ -21,7 +21,7 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get('http://localhost:5000/api/organizations/users', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { organizationId: organization?.id, pageSize: 100 }
       });
@@ -46,7 +46,7 @@ export default function Users() {
     setIsSubmitting(true);
 
     try {
-      await axios.post('http://localhost:5000/api/organizations/users', {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users`, {
         email: inviteEmail,
         role: inviteRole,
         organizationId: organization?.id

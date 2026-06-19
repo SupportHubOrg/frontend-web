@@ -26,7 +26,7 @@ export default function Tickets() {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await axios.get('http://localhost:5003/api/tickets', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { organizationId: organization?.id }
       });
@@ -50,7 +50,7 @@ export default function Tickets() {
     
     setIsSubmitting(true);
     try {
-      await axios.post('http://localhost:5003/api/tickets', newTicket, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets`, newTicket, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsCreating(false);
