@@ -20,10 +20,10 @@ export default function TicketDetail({ ticketId, onBack }) {
       setError(null);
       
       const [ticketRes, messagesRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets/${ticketId}`, {
+        axios.get(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets/${ticketId}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets/messages`, {
+        axios.get(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets/messages`, {
           headers: { Authorization: `Bearer ${token}` },
           params: { ticketId, sortBy: 'SentAt', sortDescending: false, pageSize: 100 }
         })
@@ -50,14 +50,14 @@ export default function TicketDetail({ ticketId, onBack }) {
 
     setIsSending(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets/${ticketId}/messages`, 
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets/${ticketId}/messages`, 
         { message: newMessage },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       setNewMessage('');
       // Refresh messages
-      const messagesRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets/messages`, {
+      const messagesRes = await axios.get(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets/messages`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { ticketId, sortBy: 'SentAt', sortDescending: false, pageSize: 100 }
       });
@@ -72,7 +72,7 @@ export default function TicketDetail({ ticketId, onBack }) {
   const handleUpdateTicket = async (newStatus, newOperatorId) => {
     setIsUpdating(true);
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets/${ticketId}`, 
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets/${ticketId}`, 
         { status: newStatus, operatorId: newOperatorId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -91,7 +91,7 @@ export default function TicketDetail({ ticketId, onBack }) {
     setError(null);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets/${ticketId}/propose-article`, 
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets/${ticketId}/propose-article`, 
         {
           proposedSubject: ticket.subject,
           tags: ticket.tags?.map(t => t.id) || []

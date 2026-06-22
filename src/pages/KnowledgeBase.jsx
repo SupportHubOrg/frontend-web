@@ -35,8 +35,8 @@ export default function KnowledgeBase() {
     setIsLoading(true);
     try {
       const url = query.trim()
-        ? `${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/v1/knowledge/articles/search?q=${encodeURIComponent(query)}`
-        : `${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/v1/knowledge/articles`;
+        ? `${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/v1/knowledge/articles/search?q=${encodeURIComponent(query)}`
+        : `${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/v1/knowledge/articles`;
         
       const response = await fetch(url, {
         headers: {
@@ -56,7 +56,7 @@ export default function KnowledgeBase() {
   const fetchDrafts = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/v1/knowledge/drafts?status=PENDING_REVIEW`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/v1/knowledge/drafts?status=PENDING_REVIEW`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -86,7 +86,7 @@ export default function KnowledgeBase() {
     if (!draftEdit.content) return;
     setIsPublishing(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/v1/knowledge/drafts/${selectedDraft.id}/publish`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/v1/knowledge/drafts/${selectedDraft.id}/publish`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -111,7 +111,7 @@ export default function KnowledgeBase() {
     if (!rejectReason) return;
     setIsRejecting(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/v1/knowledge/drafts/${selectedDraft.id}/reject`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/v1/knowledge/drafts/${selectedDraft.id}/reject`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -4,6 +4,6 @@ metadata:
   name: frontend-web-config
 data:
   #These values must be accessible to the client browser, not just the internal cluster.
-  REACT_APP_KEYCLOAK_URL: http://supporthub.local
+  REACT_APP_KEYCLOAK_URL: https://dingbat-brussels-dimmer.ngrok-free.dev
   REACT_APP_KEYCLOAK_REALM: "supporthub"
   REACT_APP_KEYCLOAK_CLIENT_ID: "supporthub-frontend"

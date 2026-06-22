@@ -53,7 +53,7 @@ export default function Layout() {
       >
         <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-primary)' }}>
           <img
-            src="https://support-hub.io/assets/img/logo_text.svg"
+            src="https://dingbat-brussels-dimmer.ngrok-free.dev/assets/img/logo_text.svg"
             alt="SupportHub"
             style={{
               height: '22px',

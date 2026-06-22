@@ -40,7 +40,7 @@ export default function OrganizationSettings() {
         aiTrustThreshold: null
       };
 
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/${organization?.id}`, payload, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/organizations/${organization?.id}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -64,7 +64,7 @@ export default function OrganizationSettings() {
     setDeleteError(null);
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/${organization?.id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/organizations/${organization?.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       logout();

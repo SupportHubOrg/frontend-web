@@ -25,7 +25,7 @@ export default function Register() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/organizations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

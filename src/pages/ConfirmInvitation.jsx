@@ -25,7 +25,7 @@ export default function ConfirmInvitation() {
       setError(null);
       
       try {
-        await axios.put(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users/${userId}/invitation-confirmation/${inviteToken}`, {}, {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/organizations/users/${userId}/invitation-confirmation/${inviteToken}`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -71,7 +71,7 @@ export default function ConfirmInvitation() {
               You have been invited to join a workspace on SupportHub. To accept this invitation and access your team's tickets, please create your secure password.
             </p>
             <button 
-              onClick={() => register(email ? { loginHint: email } : undefined)}
+              onClick={() => register({redirectUri: window.location.href, ...(email && { loginHint: email })})}
               className="btn-minimal btn-minimal--primary"
               style={{ width: '100%', padding: '16px', fontSize: '16px', display: 'flex', justifyContent: 'center' }}
             >

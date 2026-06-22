@@ -21,11 +21,13 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/organizations/users`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { organizationId: organization?.id, pageSize: 100 }
       });
       setUsers(res.data.items || []);
+      //Print all users
+      console.log(res.data.items);
     } catch (err) {
       setError('Failed to load users.');
     } finally {
@@ -46,7 +48,7 @@ export default function Users() {
     setIsSubmitting(true);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users`, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/organizations/users`, {
         email: inviteEmail,
         role: inviteRole,
         organizationId: organization?.id
@@ -138,7 +140,7 @@ export default function Users() {
                     </div>
                   </td>
                   <td style={{ padding: '16px 16px' }}>
-                    {user.invitationStatus === 'PENDING' ? (
+                    {String(user.invitationStatus).toUpperCase() === 'PENDING' || user.invitationStatus === 0 ? (
                       <span className="tag-pastel tag-pastel--orange" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         <Clock size={12} weight="bold" /> Pending Invite
                       </span>

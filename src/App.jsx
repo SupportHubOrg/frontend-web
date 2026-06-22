@@ -79,7 +79,7 @@ function AppRoutes() {
         }
       />
 
-      <Route path="/invite" element={<ConfirmInvitation />} />
+      <Route path="/accept-invite" element={<ConfirmInvitation />} />
 
       <Route
         path="/confirm-organization"

@@ -18,11 +18,11 @@ export default function Dashboard() {
       try {
         setIsLoading(true);
         const [ticketsRes, usersRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets`, {
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets`, {
             headers: { Authorization: `Bearer ${token}` },
             params: { organizationId: organization.id }
           }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/organizations/users`, {
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/organizations/users`, {
             headers: { Authorization: `Bearer ${token}` },
             params: { organizationId: organization.id, pageSize: 100 }
           })

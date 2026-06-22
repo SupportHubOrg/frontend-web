@@ -14,7 +14,7 @@ export default function Billing() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/billing/checkout`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/billing/checkout`, {
         organizationId: organization.id,
       });
       if (response.data && response.data.checkoutUrl) {

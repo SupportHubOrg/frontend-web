@@ -26,7 +26,7 @@ export default function Tickets() {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { organizationId: organization?.id }
       });
@@ -50,7 +50,7 @@ export default function Tickets() {
     
     setIsSubmitting(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://supporthub.local'}/api/tickets`, newTicket, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://dingbat-brussels-dimmer.ngrok-free.dev'}/api/tickets`, newTicket, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsCreating(false);
